@@ -1,6 +1,6 @@
 import { Column, Model, Table } from 'sequelize-typescript';
 @Table
-export class product extends Model {
+export class payment extends Model {
     @Column({primaryKey: true})
     id: number;
   
@@ -8,8 +8,8 @@ export class product extends Model {
     name: string;
 
     @Column
-    age: number;
+    account: number;
 
-    @Column({ defaultValue: true })
-    isActive: boolean;
+    @Column({ defaultValue: 0 })
+    total: number;
 }

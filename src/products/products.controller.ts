@@ -3,7 +3,7 @@ import { ProductsService } from './products.service';
 import { Request } from 'express';
 import { logger } from '../config/winston';
 import { ValidationPipe } from 'src/validation/validation';
-import { Product } from './entity/product.entity';
+import { product } from './entity/product.entity';
 const { createProductSchma, createCatSchema }= require('./productSchema');
 @Controller('products')
 export class ProductsController {
@@ -23,7 +23,7 @@ export class ProductsController {
 
     @Post('findall')
     @UsePipes(new ValidationPipe(createProductSchma))
-    getProductsAll(@Body()  product: ProductDto): Promise<Product[]> {
+    getProductsAll(@Body()  product: ProductDto): Promise<product[]> {
       logger.info(`controller find all test ${product.name}`);
       return this.productsService.findAll();
     }
