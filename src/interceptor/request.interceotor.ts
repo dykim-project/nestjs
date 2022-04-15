@@ -9,7 +9,6 @@ export class RequestInterceptor implements NestInterceptor {
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
     let request = context.switchToHttp().getRequest();
     logger.info(`[start request url::] ${request.url}` );
-    
     const now = Date.now();
     return next
       .handle()
