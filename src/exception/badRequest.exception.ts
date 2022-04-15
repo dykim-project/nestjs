@@ -1,14 +1,18 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { Catch, ArgumentsHost, HttpException, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-@Catch(HttpException)
-export class HttpExceptionFilter implements ExceptionFilter {
+export class BadRequestException extends HttpException {
+    constructor() {
+      super('잘못된 요청입니다', HttpStatus.BAD_REQUEST);
+    }
+  name: string;
+  message: string;
+  stack?: string;
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
-
     response
       .status(status)
       .json({

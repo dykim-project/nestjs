@@ -1,7 +1,7 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from "@nestjs/common";
 import { ObjectSchema } from 'joi';
 import { logger } from "src/config/winston";
-import { BadRequestException } from "src/exception/request.exception";
+import { BadRequestException } from "src/exception/badRequest.exception";
 @Injectable()
 export class ValidationPipe implements PipeTransform {
     //ArgumentMetadata 'body' | 'query' | 'param' | 'custom';
