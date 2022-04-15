@@ -3,23 +3,21 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RawbodyMiddleware } from './middleware/rawbody.middleware';
 import { ProductsModule } from './products/products.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Connection, getConnectionOptions } from 'typeorm';
+import { SequelizeModule } from '@nestjs/sequelize';
 const devConfig = require('./config/db.dev.config');
 const prodConfig = require('./config/db.prod.config');
+const dbConfig = process.env.NODE_ENV === 'dev' ? devConfig : prodConfig;
+
 @Module({
-  imports: [TypeOrmModule.forRoot(process.env.NODE_ENV === 'dev' ? devConfig : prodConfig),
-  // TypeOrmModule.forRootAsync({
-  //             useFactory: () => (process.env.NODE_ENV === 'dev' ? devConfig : prodConfig),
-  //           }),
-            ProductsModule],
+  imports: [SequelizeModule.forRoot(
+  devConfig
+  ),
+            ProductsModule,],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
-  constructor(private connection: Connection) {
-    
-  }
+
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(RawbodyMiddleware)

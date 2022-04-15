@@ -1,16 +1,15 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-
-@Entity()
-export class Product {
-    @PrimaryGeneratedColumn()
+import { Column, Model, Table } from 'sequelize-typescript';
+@Table
+export class Product extends Model {
+    @Column({primaryKey: true})
     id: number;
   
-    @Column()
+    @Column
     name: string;
 
-    @Column()
+    @Column
     age: number;
 
-    @Column({ default: true })
+    @Column({ defaultValue: true })
     isActive: boolean;
 }

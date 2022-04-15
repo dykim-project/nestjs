@@ -1,17 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entity/product.entity';
 import { ProductRepository } from './entity/productRepository';
 @Injectable()
 export class ProductsService {
     constructor(
-        @InjectRepository(Product)
-        private productRepository: ProductRepository,
-      ) {}
+        @Inject('PRODUCT_REPOSITORY')
+        private productRepository: typeof Product
+
+        // @InjectRepository(Product)
+        // private productRepository: ProductRepository,
+    ) {}
     
-      findAll(): Promise<Product[]> {
-        return this.productRepository.find();
-      }
+    async findAll(): Promise<Product[]> {
+       return this.productRepository.findAll<Product>();
+    }
     getHello(): string {
     return 'Hello World!';
     }
@@ -19,4 +22,7 @@ export class ProductsService {
         let product = {name: "name"}
         return product;
     }
+
+    
+
 }
