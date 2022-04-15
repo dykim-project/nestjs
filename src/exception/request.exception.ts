@@ -1,7 +1,10 @@
-import { Catch, ArgumentsHost, HttpException, ExceptionFilter } from '@nestjs/common';
+import { Catch, ArgumentsHost, HttpException, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 export class BadRequestException extends HttpException {
+    constructor() {
+        super('잘못된 요청입니다', HttpStatus.BAD_REQUEST);
+      }
   name: string;
   message: string;
   stack?: string;
@@ -16,7 +19,7 @@ export class BadRequestException extends HttpException {
         statusCode: status,
         timestamp: new Date().toISOString(),
         path: request.url,
-        statusMessage: '잘못된 요청입니다.2'
+        statusMessage: '잘못된 요청입니다.'
       });
   }
 }

@@ -1,3 +1,3 @@
-interface productDto{
+interface ProductDto {
     name: string
 }

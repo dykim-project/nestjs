@@ -15,9 +15,9 @@ export class ProductsController {
 
     @Post('products')
     @UsePipes(new ValidationPipe(createProductSchma))
-    getProducts(@Body()  product: productDto): string {
-      logger.info("controller" + product.name);
-      return this.productsService.getHello();
+    getProducts(@Body()  product: ProductDto): ProductDto {
+      logger.info(`controller ${product.name}`);
+      return this.productsService.getProject();
     }
 
 }
