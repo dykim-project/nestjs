@@ -1,0 +1,3 @@
+interface productDto{
+    name: string
+}
