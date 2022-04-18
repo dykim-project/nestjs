@@ -77,7 +77,9 @@ export class PaymentService {
              paymentId: paymentResult.id,
              refundName: 'join', account:400, total:6500
            }, {transaction: t})
-      });
+           //정상처리 
+
+        });
     } catch(error) {
       console.log('error');
     }
