@@ -38,6 +38,11 @@ export class PaymentController {
       return this.usersService.joinFind(id);
     }
 
+    @Get('joinFind2/:id')
+    joinFind2(@Param('id') id: string): Promise<payment[]> {
+      return this.usersService.joinFind2(id);
+    }
+
     @Get('refund') //ket 없어도 진행되는지 test
     createRefund(): Promise<refund> {
       return this.usersService.createRefund();

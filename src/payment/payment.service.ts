@@ -21,7 +21,6 @@ export class PaymentService {
       async findAll(): Promise<payment[]> {
         return this.paymentModel.findAll();
       }
-      //User.findOne({},{ where: { id: 32 }, attributes: ['first_name', 'last_name'] })
       async findOne(id: number): Promise<void> {
         try {
         const result = await this.paymentModel.findAndCountAll(
@@ -46,6 +45,21 @@ export class PaymentService {
         return result;
       }
 
+      async joinFind2(id: string): Promise<payment[]> {
+        return await this.paymentModel.findAll({
+          include:{
+            model: refund,
+            where: {
+             id: 4
+            },
+          },
+          where:  {id: id}
+            
+         
+      });
+    } 
+
+      //update
       findElse(id: string): void {
         let result = new payment();
         this.paymentModel.findOne(
