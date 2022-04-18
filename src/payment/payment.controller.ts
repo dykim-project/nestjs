@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { Response } from 'express';
 import { payment } from './payment.entity';
 import { PaymentService } from './payment.service';
@@ -13,7 +13,8 @@ export class PaymentController {
       return this.usersService.findAll();
     }
     @Get('getone/:id')
-    findOne(@Param('id') id: string): Promise<payment> {
+    
+    findOne(@Param('id', ParseIntPipe) id: number): Promise<void> {
       return this.usersService.findOne(id);
     }
 

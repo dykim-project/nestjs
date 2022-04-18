@@ -22,11 +22,17 @@ export class PaymentService {
         return this.paymentModel.findAll();
       }
       //User.findOne({},{ where: { id: 32 }, attributes: ['first_name', 'last_name'] })
-      async findOne(id: string): Promise<payment> {
-        return this.paymentModel.findOne(
+      async findOne(id: number): Promise<void> {
+        try {
+        const result = await this.paymentModel.findAndCountAll(
           { 
             where: { id: id } , attributes:['name']}
-        );
+        )
+        console.log(result.count);
+        } catch (error){ console.log(error)};
+
+        
+        //return result;
       }
 
       
@@ -58,8 +64,8 @@ export class PaymentService {
         //Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks', foreignKey: 'projectId' })
       //}
       async remove(id: string): Promise<void> {
-        const user = await this.findOne(id);
-        await user.destroy(); //삭제 
+      //  const user = await this.findOne(id);
+      //  await user.destroy(); //삭제 
       }
      async create(): Promise<void> {
       try {
@@ -99,3 +105,4 @@ export class PaymentService {
       ).then(() => { return res.json({"status": 200, "message": "success"}) })
     }
 }
+

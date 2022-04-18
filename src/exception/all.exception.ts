@@ -18,17 +18,21 @@ import {
       const { httpAdapter } = this.httpAdapterHost;
   
       const ctx = host.switchToHttp();
-  
       const httpStatus =
         exception instanceof HttpException
           ? exception.getStatus()
           : HttpStatus.INTERNAL_SERVER_ERROR;
-     // logger.info(exception.get)
+        if(exception instanceof HttpException){
+            let error = new Error();
+            error = exception;
+            logger.info(`[error name] ${error.name}`);
+            logger.info(`[error message] ${error.message}`);
+        }
       const responseBody = {
         statusCode: httpStatus,
         timestamp: new Date().toISOString(),
         path: httpAdapter.getRequestUrl(ctx.getRequest()),
-        resultMessage: '잘못된 요청입니다 not found..'
+        resultMessage: '잘못된 요청입니다'
       };
   
       httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);

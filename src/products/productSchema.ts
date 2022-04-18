@@ -10,6 +10,9 @@ export const createProductSchma = Joi.object().keys({
     breed: Joi.string().required()
 });
 
+export const createNumberSchema = Joi.object().keys({
+    id: Joi.number()
+})
 
 export const createCatSchema = Joi.object().keys({
     name: Joi.string().required(),

@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { product } from './entity/product.entity';
+import { ProductDto } from './productDto';
 @Injectable()
 export class ProductsService {
     constructor(
@@ -15,7 +16,7 @@ export class ProductsService {
     return 'Hello World!';
     }
     getProject(): ProductDto {
-        let product = {name: "name"}
+        let product = {name: "name", id:0}
         return product;
     }
 

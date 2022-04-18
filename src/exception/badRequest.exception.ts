@@ -22,7 +22,7 @@ export class BadRequestException extends HttpException {
         statusCode: status,
         timestamp: new Date().toISOString(),
         path: request.url,
-        statusMessage: '잘못된 요청입니다.333'
+        statusMessage: '잘못된 요청입니다.'
       });
   }
 }
