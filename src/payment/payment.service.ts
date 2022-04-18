@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel, getConnectionName, InjectConnection } from '@nestjs/sequelize';
 import { Response } from 'express';
-import { payment } from './payment.entity';
-import { refund } from './refund.entity';
+import { payment } from '../entity/payment.entity';
+import { refund } from '../entity/refund.entity';
 import { Sequelize } from 'sequelize';
 
 @Injectable()
@@ -25,8 +25,8 @@ export class PaymentService {
       async findOne(id: number): Promise<void> {
         try {
         const result = await this.paymentModel.findAndCountAll(
-          { 
-            where: { id: id } , attributes:['name']}
+          { where: { id: id } , 
+            attributes:['name']}
         )
         console.log(result.count);
         } catch (error){ console.log(error)};
@@ -36,13 +36,14 @@ export class PaymentService {
       }
 
       
-      async joinFind(id: string): Promise<void> {
-        return this.paymentModel.findOne({ 
+      async joinFind(id: string): Promise<payment[]> {
+        let payment = await this.paymentModel.findAndCountAll({ 
           include: [refund],
           where: {id: id}})
-          .then((payment) => {
-            console.log(payment.refunds[0].refundName);
-        });
+        
+        payment.count;
+        let result = payment.rows;
+        return result;
       }
 
       findElse(id: string): void {

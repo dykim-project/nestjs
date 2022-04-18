@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Post, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Request } from 'express';
 import { logger } from '../config/winston';
-import { ValidationPipe } from 'src/validation/validation';
-import { product } from './entity/product.entity';
-import { ProductDto } from './productDto';
-const { createProductSchma, createCatSchema }= require('./productSchema');
+import { product } from '../entity/product.entity';
+import { ProductDto } from '../dto/productDto';
 @Controller('products')
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) {}
@@ -15,15 +13,8 @@ export class ProductsController {
       return this.productsService.getHello();
     }
 
-    // @Post('products')
-    // @UsePipes(new ValidationPipe(createProductSchma))
-    // getProducts(@Body()  product: ProductDto): ProductDto {
-    //   logger.info(`controller ${product.name}`);
-    //   return this.productsService.getProject();
-    // }
-
     @Post('findall')
-    //@UsePipes(new ValidationPipe())
+    @UsePipes(new ValidationPipe())
     getProductsAll(@Body()  product: ProductDto): Promise<product[]> {
       logger.info(`controller find all test ${product.name}`);
       return this.productsService.findAll();

@@ -1,8 +1,8 @@
 import { Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { Response } from 'express';
-import { payment } from './payment.entity';
+import { payment } from '../entity/payment.entity';
 import { PaymentService } from './payment.service';
-import { refund } from './refund.entity';
+import { refund } from '../entity/refund.entity';
 
 @Controller('payment')
 export class PaymentController {
@@ -34,7 +34,7 @@ export class PaymentController {
     }
 
     @Get('joinFind/:id')
-    joinFind(@Param('id') id: string): Promise<void> {
+    joinFind(@Param('id') id: string): Promise<payment[]> {
       return this.usersService.joinFind(id);
     }
 

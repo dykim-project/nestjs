@@ -1,4 +1,4 @@
-import { payment } from './payment.entity';
+import { payment } from '../entity/payment.entity';
 
 export const paymentProviders = [
   {

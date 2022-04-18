@@ -5,7 +5,7 @@ import helmet from "helmet";
 const bodyParser = require("body-parser");
 const express = require('express');
 import { RequestInterceptor } from './interceptor/request.interceotor';
-import { AllExceptionsFilter } from './exception/all.exception';
+import { AllExceptionsFilter } from './exception/allCatch.exception';
 import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

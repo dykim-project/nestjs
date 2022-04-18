@@ -23,10 +23,7 @@ import {
           ? exception.getStatus()
           : HttpStatus.INTERNAL_SERVER_ERROR;
         if(exception instanceof HttpException){
-            let error = new Error();
-            error = exception;
-            logger.info(`[error name] ${error.name}`);
-            logger.info(`[error message] ${error.message}`);
+            logger.info(exception.getResponse());
         }
       const responseBody = {
         statusCode: httpStatus,

@@ -1,7 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Catch, ArgumentsHost, HttpException, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { catchError } from 'rxjs';
 
 @Catch(NotFoundException)
 export class BadRequestException extends HttpException {

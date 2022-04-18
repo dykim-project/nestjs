@@ -1,6 +1,6 @@
 import { AutoIncrement, Column, ForeignKey, HasMany, Model, Sequelize, Table } from 'sequelize-typescript';
 import sequelize from 'sequelize/types/sequelize';
-import { payment } from './payment.entity';
+import { payment } from '../entity/payment.entity';
 
 @Table({
     tableName: 'test2',
