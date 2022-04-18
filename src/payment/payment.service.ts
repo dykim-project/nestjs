@@ -1,25 +1,42 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectModel, getConnectionName, InjectConnection } from '@nestjs/sequelize';
 import { Response } from 'express';
 import { payment } from './payment.entity';
-import { PaymentRepository } from './payment.repository';
+import { refund } from './refund.entity';
+import { Sequelize } from 'sequelize';
+
 @Injectable()
 export class PaymentService {
-//@types/sequelize 사용  app.module에서 주소 설정함 
     constructor(
         @InjectModel(payment)
         private paymentModel: typeof payment,
+
+        @InjectModel(refund)
+        private refundModel: typeof refund,
+
+        @InjectConnection()
+        private sequelize: Sequelize,
       ) {}
 
       async findAll(): Promise<payment[]> {
         return this.paymentModel.findAll();
       }
       //User.findOne({},{ where: { id: 32 }, attributes: ['first_name', 'last_name'] })
-      findOne(id: string): Promise<payment> {
+      async findOne(id: string): Promise<payment> {
         return this.paymentModel.findOne(
-          { where: { id: id } }
+          { 
+            where: { id: id } , attributes:['name']}
         );
+      }
+
+      
+      async joinFind(id: string): Promise<void> {
+        return this.paymentModel.findOne({ 
+          include: [refund],
+          where: {id: id}})
+          .then((payment) => {
+            console.log(payment.refunds[0].refundName);
+        });
       }
 
       findElse(id: string): void {
@@ -27,11 +44,9 @@ export class PaymentService {
         this.paymentModel.findOne(
           { where: { id: id } }
         ).then(async (payment) => {
-          payment.name = 'change';
+          payment.name = '222';
           result  = await payment.save();
-        
         });
-        console.log(result.name);
       }
     
      // async manyTo(): Promise<payment[]> {
@@ -46,9 +61,31 @@ export class PaymentService {
         const user = await this.findOne(id);
         await user.destroy(); //삭제 
       }
-     create(): Promise<payment> {
-      let payment = { name: 'test', account:400, total:6500} 
-      return this.paymentModel.create(payment);
+     async create(): Promise<void> {
+      try {
+
+       //transaction 
+        let payment = { name: 'test', account:400, total:6500} ;
+        const result = await this.sequelize.transaction(async (t) => {
+          //row query  
+          this.sequelize.query("select * from test  WHERE id in (1,2,3)", {transaction: t}).then(([results, metadata]) => {
+            results.forEach( data=> {} );
+          })
+
+          let paymentResult = await this.paymentModel.create(payment, { transaction: t });
+          await this.refundModel.create({
+             paymentId: paymentResult.id,
+             refundName: 'join', account:400, total:6500
+           }, {transaction: t})
+      });
+    } catch(error) {
+      console.log('error');
+    }
+    }
+
+    createRefund(): Promise<refund> {
+      let payment = { refundName: 'test', account:400, total:6500, paymentId: 2} 
+      return this.refundModel.create(payment);
     }
 
     update(res: Response): void{

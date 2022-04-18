@@ -1,11 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectModel } from '@nestjs/sequelize';
 import { product } from './entity/product.entity';
-import { ProductRepository } from './entity/productRepository';
 @Injectable()
 export class ProductsService {
     constructor(
-        @InjectRepository(product)
+        @InjectModel(product)
         private readonly productModel: typeof product,
     ) {}
     

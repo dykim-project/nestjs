@@ -1,10 +1,11 @@
-import { AutoIncrement, Column, Model, Sequelize, Table } from 'sequelize-typescript';
+import { AutoIncrement, Column, HasMany, Model, Sequelize, Table } from 'sequelize-typescript';
 import sequelize from 'sequelize/types/sequelize';
+import { refund } from './refund.entity';
 
 @Table({
     tableName: 'test',
     updatedAt: false ,
-    timestamps: true, //createdAt 와 updatedAt 자동생성 
+    timestamps: true, 
   }) 
   //({ createdAt: false, updatedAt: false }
 export class payment extends Model {
@@ -20,9 +21,8 @@ export class payment extends Model {
 
     @Column({ defaultValue: 0 })
     total: number;
-   
-    //@Column ({ defaultValue: Sequelize.fn('now')})
-    //createdAt: Date;
-    //@자동으로 생성 되는지 확인 
+
+    @HasMany(() => refund)
+    refunds: refund[];
     
 }
