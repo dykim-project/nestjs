@@ -3,7 +3,7 @@ import { Catch, ArgumentsHost, HttpException, ExceptionFilter, HttpStatus } from
 import { Request, Response } from 'express';
 import { catchError } from 'rxjs';
 
-@Catch( NotFoundException)
+@Catch(NotFoundException)
 export class BadRequestException extends HttpException {
     constructor() {
       super('잘못된 요청입니다', HttpStatus.BAD_REQUEST);
@@ -22,7 +22,7 @@ export class BadRequestException extends HttpException {
         statusCode: status,
         timestamp: new Date().toISOString(),
         path: request.url,
-        statusMessage: '잘못된 요청입니다.'
+        statusMessage: '잘못된 요청입니다.333'
       });
   }
 }

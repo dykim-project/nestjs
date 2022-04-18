@@ -12,7 +12,7 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({extended: true}));
   app.use(express.text()); 
   const httpAdapterHost  = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
+  //app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
   app.useGlobalInterceptors(new RequestInterceptor());
   await app.listen(3000);
 }
