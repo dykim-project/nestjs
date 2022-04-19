@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { BadRequestException } from 'src/exception/badRequest.exception';
+import { BadRequestException } from '@nestjs/common';
 import { logger } from '../config/winston';
 @Injectable()
 export class RawbodyMiddleware implements NestMiddleware {

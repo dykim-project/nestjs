@@ -26,11 +26,12 @@ import {
             logger.warn(`[http exception]`);
             logger.warn(exception.getResponse());
           }
+
       const responseBody = {
         statusCode: httpStatus,
         timestamp: new Date().toISOString(),
         path: httpAdapter.getRequestUrl(ctx.getRequest()),
-        resultMessage: '잘못된 요청입니다'
+        resultMessage: httpStatus === 500 ? 'Server Error' : '잘못된 요청입니다'
       };
   
       httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);

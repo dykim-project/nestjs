@@ -4,6 +4,7 @@ import { payment } from '../entity/payment.entity';
 import { PaymentService } from './payment.service';
 import { refund } from '../entity/refund.entity';
 import { ProductDto } from 'src/dto/productDto';
+import { product } from 'src/entity/product.entity';
 @Controller('payment')
 export class PaymentController {
     constructor(private readonly usersService: PaymentService) {}
@@ -12,8 +13,13 @@ export class PaymentController {
     findAll(): Promise<payment[]> {
       return this.usersService.findAll();
     }
-    @Get('getone/:id')
     
+    @Get('product')
+    findAllProduct(): Promise<product[]> {
+      return this.usersService.productAll();
+    }
+
+    @Get('getone/:id')
     findOne(@Param('id', ParseIntPipe) id: number): Promise<void> {
       return this.usersService.findOne2(id);
     }
@@ -50,7 +56,7 @@ export class PaymentController {
       return this.usersService.joinFind2(id);
     }
 
-    @Get('refund') //key 없어도 진행되는지 test
+    @Get('refund') 
     createRefund(): Promise<refund> {
       return this.usersService.createRefund();
     }

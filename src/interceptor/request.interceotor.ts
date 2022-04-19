@@ -1,8 +1,6 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, NotFoundException, HttpException, NotAcceptableException } from '@nestjs/common';
-import { Request } from 'express';
 import { Observable } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
-import { BadRequestException } from 'src/exception/badRequest.exception';
+import { map } from 'rxjs/operators';
 import { logger } from '../config/winston';
 @Injectable()
 export class RequestInterceptor implements NestInterceptor {

@@ -6,6 +6,7 @@ import { refund } from '../entity/refund.entity';
 import { QueryTypes, Sequelize } from 'sequelize';
 import { logger } from 'src/config/winston';
 import { ProductDto } from '../dto/productDto';
+import { product } from 'src/entity/product.entity';
 @Injectable()
 export class PaymentService {
     constructor(
@@ -15,6 +16,9 @@ export class PaymentService {
         @InjectModel(refund)
         private refundModel: typeof refund,
 
+        @InjectModel(product, 'mddb')
+        private productModel: typeof product,
+
         @InjectConnection()
         private sequelize: Sequelize,
       ) {}
@@ -23,6 +27,17 @@ export class PaymentService {
         return this.paymentModel.findAll();
       }
 
+      async productAll(): Promise<product[]> {
+        try {
+          return this.productModel.findAll();
+        } catch(error) {
+          console.log(error);
+        }
+      }
+
+
+
+      //가져올 컬럼 선택하기
       async findOne(id: number): Promise<void> {
         try {
         const result = await this.paymentModel.findAndCountAll(
@@ -32,27 +47,28 @@ export class PaymentService {
         } catch (error){ logger.warn(error);};
 
         
-        //return result;
       }
 
+      //pk로만 검색하기 
       async findOne2(id:number): Promise<void> {
         try {
           const result = await this.paymentModel.findByPk(id);
-          console.log(result)
+          console.log(result.toJSON);
         } catch(error) {
 
         }
       }
 
+      //검색 후 없으면 create 
       async findAndCreate(name: string): Promise<void> {
         try {
-          const [user, created] = await this.paymentModel.findOrCreate({
+          const [payment, created] = await this.paymentModel.findOrCreate({
             where: { name: name },
             defaults: {
               account: 100000, total:2000000
             }
           });
-          console.log(user);
+          console.log(payment.toJSON());
           if (created) {
           logger.info('created');
           logger.info(created);
@@ -63,6 +79,7 @@ export class PaymentService {
         }
       }
       
+      //join
       async joinFind(id: string): Promise<payment[]> {
         let payment = await this.paymentModel.findAndCountAll({ 
           include: [refund],
@@ -71,7 +88,7 @@ export class PaymentService {
         return result;
       }
 
-
+      //join 
       async joinFind2(id: string): Promise<payment[]> {
         try { 
           return await this.paymentModel.findAll({
@@ -120,20 +137,17 @@ export class PaymentService {
           //row query  
           let [result] = await this.sequelize.query("select * from test  WHERE id in (1,2,3)", {
             transaction: t  });
-          
-           console.log(result);
 
           let paymentResult = await this.paymentModel.create(payment2, { transaction: t });
           await this.refundModel.create({
              paymentId: paymentResult.id,
              refundName: 'join', account:400, total:6500
            }, {transaction: t})
-           //정상처리 
 
         });
-    } catch(error) {
-      console.log('error');
-    }
+      } catch(error) {
+        console.log('error');
+      }
     }
 
     createRefund(): Promise<refund> {
