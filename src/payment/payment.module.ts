@@ -6,7 +6,7 @@ import { payment } from '../entity/payment.entity';
 import { refund } from '../entity/refund.entity';
 
 @Module({
-  imports: [SequelizeModule.forFeature([payment]), SequelizeModule.forFeature([refund])], 
+  imports: [SequelizeModule.forFeature([payment, refund])], 
   providers: [PaymentService],
   controllers: [PaymentController]
 })

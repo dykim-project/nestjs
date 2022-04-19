@@ -16,7 +16,8 @@ export class ProductsService {
     return 'Hello World!';
     }
     getProject(): ProductDto {
-        let product = {name: "name", id:0}
+       let product = new ProductDto();
+        //  let product = {name: "name", id:0}
         return product;
     }
 

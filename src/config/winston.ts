@@ -33,7 +33,7 @@ export const logger = winston.createLogger({
     }),
     // error 레벨 로그를 저장할 파일 설정
     new winstonDaily({
-      level: 'error',
+      level: 'warn',
       datePattern: 'YYYY-MM-DD',
       dirname: logDir + '/error',  // error.log 파일은 /logs/error 하위에 저장 
       filename: `%DATE%.error.log`,

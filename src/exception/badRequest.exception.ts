@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Catch, ArgumentsHost, HttpException, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-@Catch(NotFoundException)
+@Catch(BadRequestException)
 export class BadRequestException extends HttpException {
     constructor() {
       super('잘못된 요청입니다', HttpStatus.BAD_REQUEST);
@@ -15,6 +15,7 @@ export class BadRequestException extends HttpException {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
+    
     response
       .status(status)
       .json({

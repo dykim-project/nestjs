@@ -6,11 +6,13 @@ import { logger } from '../config/winston';
 export class RawbodyMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     try {
+      logger.warn(process.env);
       req.body = JSON.parse(req.body);
-      } catch {
-        logger.error('parsing error');
-        throw new BadRequestException();
-      }
+    } catch(error) {
+       logger.warn('[middleware] parsing error');
+      throw new BadRequestException();
+    }
       next();
   }
 }
+

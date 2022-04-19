@@ -1,9 +1,9 @@
-import { Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { Response } from 'express';
 import { payment } from '../entity/payment.entity';
 import { PaymentService } from './payment.service';
 import { refund } from '../entity/refund.entity';
-
+import { ProductDto } from 'src/dto/productDto';
 @Controller('payment')
 export class PaymentController {
     constructor(private readonly usersService: PaymentService) {}
@@ -15,7 +15,7 @@ export class PaymentController {
     @Get('getone/:id')
     
     findOne(@Param('id', ParseIntPipe) id: number): Promise<void> {
-      return this.usersService.findOne(id);
+      return this.usersService.findOne2(id);
     }
 
     @Get('getelse/:id')
@@ -24,8 +24,14 @@ export class PaymentController {
     }
 
     @Post('create')
-    create(): Promise<void> {
+    create(@Body() product: ProductDto): Promise<void> {
+      console.log(product);
       return this.usersService.create();
+    }
+
+    @Post('findcreate')
+    findAndCreate(@Body('name') name: string): Promise<void> {
+      return this.usersService.findAndCreate(name);
     }
 
     @Post('update')
@@ -39,11 +45,12 @@ export class PaymentController {
     }
 
     @Get('joinFind2/:id')
-    joinFind2(@Param('id') id: string): Promise<payment[]> {
+    //@Redirect('https://docs.nestjs.com', 302)
+     async joinFind2(@Param('id') id: string, res: Response): Promise<payment[]> {
       return this.usersService.joinFind2(id);
     }
 
-    @Get('refund') //ket 없어도 진행되는지 test
+    @Get('refund') //key 없어도 진행되는지 test
     createRefund(): Promise<refund> {
       return this.usersService.createRefund();
     }
