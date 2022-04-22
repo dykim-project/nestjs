@@ -6,8 +6,10 @@ import { text } from 'express';
 import { RequestInterceptor } from './interceptor/request.interceotor';
 import { AllExceptionsFilter } from './exception/allCatch.exception';
 import { ValidationPipe } from '@nestjs/common';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule,  { cors: true });
+  app.enableCors();
   app.use(helmet());
   app.use(urlencoded({extended: true}));
   app.use(text()); 

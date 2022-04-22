@@ -1,11 +1,15 @@
-import { IsEmail, IsNotEmpty, IsNumberString, IsNumber} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsNumberString } from 'class-validator';
 
 export class ProductDto {
     @IsNotEmpty()
-    name: string;
-    @IsNumberString()//number인 string으로 
-    id: number;
-    @IsNumber()
-    num: number;
+    @IsNumberString()
+    uid: number;
 
+    @IsNotEmpty()
+    productId: string;
+
+    @IsNotEmpty()
+    productCnt: number;
+
+    storeId: string;
 }

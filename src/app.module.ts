@@ -2,10 +2,12 @@ import { MiddlewareConsumer, Module, NestModule, BadRequestException } from '@ne
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RawbodyMiddleware } from './middleware/rawbody.middleware';
-import { ProductsModule } from './products/products.module';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { PaymentModule } from './payment/payment.module';
+import { SampleModule } from './sample/sample.module';
 import { APP_FILTER } from '@nestjs/core';
+import { CartModule } from './cart/cart.module';
+import { SmartorderModule } from './smartorder/smartorder.module';
+import { PaymentModule } from './payment/payment.module';
 const { accountdb, mddb } = require('./config/db.dev.config');
 const prodConfig = require('./config/db.prod.config');
 //const dbConfig = process.env.NODE_ENV === 'dev' ? devConfig : prodConfig;
@@ -21,7 +23,9 @@ const prodConfig = require('./config/db.prod.config');
     ,name: 'mddb'
   }
 ),
-  ProductsModule,
+  SampleModule,
+  CartModule,
+  SmartorderModule,
   PaymentModule,],
   controllers: [AppController],
   providers: [AppService, {
@@ -32,11 +36,8 @@ const prodConfig = require('./config/db.prod.config');
 export class AppModule implements NestModule {
 
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(RawbodyMiddleware)
-      .forRoutes('products'); //해당주소로 시작하는 url에 적용 
       consumer
       .apply(RawbodyMiddleware)
-      .forRoutes('/'); //해당주소로 시작하는 url에 적용 
+      .forRoutes('sample'); //해당주소로 시작하는 url에 적용 
   }
 }

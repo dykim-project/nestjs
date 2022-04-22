@@ -1,167 +1,119 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { InjectModel, InjectConnection } from '@nestjs/sequelize';
-import { Response } from 'express';
-import { payment } from '../entity/payment.entity';
-import { refund } from '../entity/refund.entity';
-import { QueryTypes, Sequelize } from 'sequelize';
+import { Injectable, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
+import axios from 'axios';
 import { logger } from 'src/config/winston';
-import { ProductDto } from '../dto/productDto';
-import { product } from 'src/entity/product.entity';
 @Injectable()
 export class PaymentService {
-    constructor(
-        @InjectModel(payment)
-        private paymentModel: typeof payment,
 
-        @InjectModel(refund)
-        private refundModel: typeof refund,
-
-        @InjectModel(product, 'mddb')
-        private productModel: typeof product,
-
-        @InjectConnection()
-        private sequelize: Sequelize,
-      ) {}
-
-      async findAll(): Promise<payment[]> {
-        return this.paymentModel.findAll();
-      }
-
-      async productAll(): Promise<product[]> {
-        try {
-          return this.productModel.findAll();
-        } catch(error) {
-          console.log(error);
-        }
-      }
-
-
-
-      //가져올 컬럼 선택하기
-      async findOne(id: number): Promise<void> {
-        try {
-        const result = await this.paymentModel.findAndCountAll(
-          { where: { id: id } , 
-            attributes:['name']}
-        )
-        } catch (error){ logger.warn(error);};
-
-        
-      }
-
-      //pk로만 검색하기 
-      async findOne2(id:number): Promise<void> {
-        try {
-          const result = await this.paymentModel.findByPk(id);
-          console.log(result.toJSON);
-        } catch(error) {
-
-        }
-      }
-
-      //검색 후 없으면 create 
-      async findAndCreate(name: string): Promise<void> {
-        try {
-          const [payment, created] = await this.paymentModel.findOrCreate({
-            where: { name: name },
-            defaults: {
-              account: 100000, total:2000000
+    async payment() {
+        this.saveOrder();
+        const auth = await this.nicepayAuth();
+        if(auth) {
+            const approval = await this.nicepayApproval();
+            if(approval) {
+                //결제정보 db update 
+                this.saveOrder();
+                //스마트 오더 진행<- ? 
+                
             }
-          });
-          console.log(payment.toJSON());
-          if (created) {
-          logger.info('created');
-          logger.info(created);
-            // console.log(user.job); // This will certainly be 'Technical Lead JavaScript'
-          }
-        } catch(error) {
-          console.log(error);
         }
-      }
-      
-      //join
-      async joinFind(id: string): Promise<payment[]> {
-        let payment = await this.paymentModel.findAndCountAll({ 
-          include: [refund],
-          where: {id: id}})
-        let result = payment.rows;
-        return result;
-      }
 
-      //join 
-      async joinFind2(id: string): Promise<payment[]> {
+        //return 500 인경우 front에서 결제 오류 alert 
+    }
+    //주문, 주문 상세 db 저장
+    async saveOrder() {
+
+    }
+
+    //결제정보 주문테이블에 업데이트
+    async updateOrder() {
+
+    }
+
+    //nicepay 인증요청
+    async nicepayAuth(): Promise<any> {
         try { 
-          return await this.paymentModel.findAll({
-          include:{
-            model: refund,
-            where: {
-             id: 4
-            },
-          },
-          where:  {id: id}
-      });
-      } catch(error){
-        logger.warn(error);
-      }
-    } 
-
-      //update
-      findElse(id: string): void {
-        let result = new payment();
-        this.paymentModel.findOne(
-          { where: { id: id } }
-        ).then(async (payment) => {
-          payment.name = '222';
-          result  = await payment.save();
-        });
-      }
+            const url = '';
+            const data = {
+            a: 10,
+            b: 20,
+            };
+            axios
+            .post(url, data, {
+                timeout: 15, 
+                headers: {
+                Accept: "application/json",
+                
+                },
+            })
+            .then(({data}) => {
+                console.log(data);
+            });
+        } catch(error) { 
+            logger.error('[payment.nicepayAuth error]');
+            logger.error(error);
+            throw new InternalServerErrorException('[payment.nicepayAuth]');
+     }
+    }    
     
-     // async manyTo(): Promise<payment[]> {
-        //User.hasOne(Profile) 
-        //Profile.belongsTo(User)
-        //Project.belongsToMany(User, {through: 'UserProject'}); 
-        //User.belongsToMany(Project, {through: 'UserProject'});
-        //User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks', foreignKey: 'userId' }) 
-        //Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks', foreignKey: 'projectId' })
-      //}
-      async remove(id: string): Promise<void> {
-      //  const user = await this.findOne(id);
-      //  await user.destroy(); //삭제 
-      }
-     async create(): Promise<void> {
-      try {
+    //결제 승인 요청
+    async nicepayApproval(): Promise<any> {
+        try {
 
-       //transaction 
-        let payment2 = { name: 'test', account:400, total:6500} ;
-        const result = await this.sequelize.transaction(async (t) => {
-          //row query  
-          let [result] = await this.sequelize.query("select * from test  WHERE id in (1,2,3)", {
-            transaction: t  });
-
-          let paymentResult = await this.paymentModel.create(payment2, { transaction: t });
-          await this.refundModel.create({
-             paymentId: paymentResult.id,
-             refundName: 'join', account:400, total:6500
-           }, {transaction: t})
-
-        });
-      } catch(error) {
-        console.log('error');
-      }
+        } catch(error) {
+            //망취소 
+            await this.cancelNetwork();
+            throw new InternalServerErrorException('[payment.nicepayApproval error]');
+        }
     }
 
-    createRefund(): Promise<refund> {
-      let payment = { refundName: 'test', account:400, total:6500, paymentId: 2} 
-      return this.refundModel.create(payment);
+
+
+    //스마트 오더 진행..?  
+    async orderWithPg() {
+        try {
+        //payment_order_with_pg
+        //실패코드일때
+            //결제취소 & 결제취소 결과 update //catch내용과 같음. 
+        //성공일때
+            //주문db 상태 update - ks_order status = 1001
+        await this.updateOrderStatus('', '1001'); 
+        } catch(error) {
+            //결제 취소 
+            const response = await this.cancelPayment();
+            
+            //취소 성공인경우 
+            // - 주문db상태 update - ks_order status='EC9999'
+            await this.updateOrderStatus('', 'EC9999'); 
+            //취소 실패일때 front
+            //logger.error('[orderWithPg]' + ResultMsg);
+            //503인경우 front에서는 그대로 보여주기 
+            throw new ServiceUnavailableException('ResultMsg');
+            // - alertFail($response['ResultCode'], $response['ResultMsg']); 
+        }
     }
 
-    update(res: Response): void{
-      this.paymentModel.update(
-        {
-          name: 'bobby',
-        },
-        { where: { id: 1 } }
-      ).then(() => { return res.json({"status": 200, "message": "success"}) })
+    async updateOrderStatus(orderId: string, status: string) {
+
+    }
+
+    //망취소
+    async cancelNetwork(): Promise<any> {
+        try {
+
+        } catch(error) {
+            logger.error('[payment.cancelNetwork error]');
+            logger.error(error);
+            throw new InternalServerErrorException('[payment.cancelNetwork error]');
+        }
+    }
+
+    //결제 취소
+    async cancelPayment() {
+        try{
+
+        } catch(error) {
+            //결제 취소중 오류일때 front에서 결제 취소중 오류 alert 만 띄움 
+        }
+
     }
 }
-
