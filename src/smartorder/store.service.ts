@@ -17,13 +17,13 @@ export class StoreService {
     //매장 목록
     //return storeEntity list
     async getStoreList() {
-        
+        return true;
     }
     
     //매장 상세
     //return storeEntity
     async getStoreDetail(storeId: string) {
-
+        return Promise.resolve(true);
     }
 
 

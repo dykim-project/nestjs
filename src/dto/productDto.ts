@@ -1,9 +1,11 @@
+import { PartialType } from '@nestjs/mapped-types';
 import { IsNotEmpty, IsNumber, IsNumberString } from 'class-validator';
+import { CommonDto } from './commonDto';
 
-export class ProductDto {
+export class ProductDto extends   PartialType(CommonDto){
     @IsNotEmpty()
     @IsNumberString()
-    uid: number;
+    readonly uid: number;
 
     @IsNotEmpty()
     productId: string;

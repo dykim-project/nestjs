@@ -1,10 +1,21 @@
 module.exports = {
-    type: 'mysql',
-    host: '211.216.48.159',
-    port: 3307,
-    username: 'ddfactory',
-    password: 'ddfactory!@',
-    database: 'test',
-    entities: 'dist/**/*.entity{.ts,.js}',
-    synchronize: false,
+    'accountdb':{
+        dialect: 'postgres',
+        host: 'localhost',
+        port: 5434,
+        username: 'postgres',
+        password: 'admin',
+        database: 'account',
+        autoLoadModels: true,
+        synchronize: true
+    },'mddb':{
+        dialect: 'postgres',
+        host: 'localhost',
+        port: 5434,
+        username: 'postgres',
+        password: 'admin',
+        database: 'md',
+        autoLoadModels: true,
+        synchronize: true 
+    }
 }

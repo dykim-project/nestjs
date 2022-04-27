@@ -78,13 +78,13 @@ export class SampleService {
       }
       
       //join
-      // async joinFind(id: string): Promise<sample[]> {
-      //   let sample = await this.sampleModel.findAndCountAll({ 
-      //     include: [refund],
-      //     where: {id: id}})
-      //   let result = sample.rows;
-      //   return result;
-      // }
+       async joinFind(id: string): Promise<sample[]> {
+         let sample = await this.sampleModel.findAndCountAll({ 
+           include: [sample2],
+           where: {id: id}})
+         let result = sample.rows;
+         return result;
+      }
 
       //join 
     //   async joinFind2(id: string): Promise<sample[]> {

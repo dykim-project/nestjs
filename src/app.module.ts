@@ -8,30 +8,30 @@ import { APP_FILTER } from '@nestjs/core';
 import { CartModule } from './cart/cart.module';
 import { SmartorderModule } from './smartorder/smartorder.module';
 import { PaymentModule } from './payment/payment.module';
-const { accountdb, mddb } = require('./config/db.dev.config');
+const devConfig = require('./config/db.dev.config');
 const prodConfig = require('./config/db.prod.config');
-//const dbConfig = process.env.NODE_ENV === 'dev' ? devConfig : prodConfig;
-
+const dbConfig = process.env.NODE_ENV === 'dev' ? devConfig : prodConfig;
 @Module({
   imports: [
   SequelizeModule.forRoot({
-      ...accountdb
+      ...dbConfig.accountdb
     }
   ),
   SequelizeModule.forRoot({
-    ...mddb
+    ...dbConfig.mddb
     ,name: 'mddb'
   }
-),
+), 
   SampleModule,
   CartModule,
   SmartorderModule,
   PaymentModule,],
   controllers: [AppController],
   providers: [AppService, {
-    provide: APP_FILTER,
-    useClass: BadRequestException,
-  }],
+      provide: APP_FILTER,
+      useClass: BadRequestException,
+    },
+],
 })
 export class AppModule implements NestModule {
 

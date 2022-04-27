@@ -6,10 +6,10 @@ import { PaymentService } from 'src/payment/payment.service';
 import { ProductService } from './product.service';
 import { StoreService } from './store.service';
 
-@Controller('/')
+@Controller()
 export class SmartorderController {
-    constructor(private storeService: StoreService,
-                private productService: ProductService,
+    constructor(private readonly storeService: StoreService,
+                private readonly productService: ProductService,
                 private paymentService: PaymentService) {}
     
     //매장 목록
@@ -22,7 +22,7 @@ export class SmartorderController {
     @Get('store/detail')
     async getStoreDetail(@Res() res: Response,
                         @Query('uid') uid: string,
-                        @Query('storeId') storeId: string) {
+                        @Query('storeId') storeId: string): Promise<any> {
 
         //1.장바구니 정보 가져와서 같은 가게가 아니면 장바구니 삭제 
 
@@ -37,7 +37,7 @@ export class SmartorderController {
             productList: productList,
             storeOpenChk: storeOpenChk
         }
-        return res.json(body);
+        return body;
     }
 
     //product 상세

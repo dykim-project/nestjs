@@ -1,5 +1,6 @@
 import { AutoIncrement, Column, HasMany, Model, Sequelize, Table } from 'sequelize-typescript';
 import sequelize from 'sequelize/types/sequelize';
+import { sample2 } from './sample2.entity';
 
 @Table({
     tableName: 'test',
@@ -21,7 +22,7 @@ export class sample extends Model {
     @Column({ defaultValue: 0 })
     total: number;
 
-   // @HasMany(() => refund)
-   // refunds: refund[];
+    //@HasMany(() => sample2)
+    //refunds: sample2[];
     
 }

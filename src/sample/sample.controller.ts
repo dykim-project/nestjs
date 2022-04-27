@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { sample } from '../entity/sample.entity';
 import { SampleService } from './sample.service';
 import { sample2 } from 'src/entity/sample2.entity';
+import { CommonDto } from 'src/dto/commonDto';
 @Controller('sample')
 export class SampleController {
     constructor(private readonly usersService: SampleService) {}
@@ -10,6 +11,11 @@ export class SampleController {
     @Get()
     findAll(): Promise<sample[]> {
       return this.usersService.findAll();
+    }
+
+    @Post('common')
+    getCommon(@Body() common: CommonDto): CommonDto {
+      return common;
     }
     
     @Get('product')

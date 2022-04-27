@@ -6,7 +6,7 @@ import { logger } from '../config/winston';
 export class RawbodyMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     try {
-      logger.warn(process.env);
+      logger.warn(`rawbody ${process.env.NODE_ENV}`);
       req.body = JSON.parse(req.body);
     } catch(error) {
        logger.warn('[middleware] parsing error');

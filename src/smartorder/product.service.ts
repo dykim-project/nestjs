@@ -6,7 +6,7 @@ export class ProductService {
     constructor() {}
     //상품 목록 //
     getProductList(storeId: string) {
-
+        return true;
     }
 
     //아이템 상세
