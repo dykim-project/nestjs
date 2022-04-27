@@ -25,10 +25,16 @@ export class SmartorderController {
                         @Query('storeId') storeId: string): Promise<any> {
 
         //1.장바구니 정보 가져와서 같은 가게가 아니면 장바구니 삭제 
+        //delete_all_cart //외부 api호출하여 삭제
 
-        //매장상세 정보
+        //장바구니 정보 상세(장바구니 상단 표기 숫자)
+        //get_basket_info //외부api 사용
+        
+        //매장상세 정보(상단 매장정보)
+        //get_store_info($store_id); //외부 api 사용 
         const storeDetail = await this.storeService.getStoreDetail(storeId);
         //상품 목록
+        //get_item_list //외부 api 사용
         const productList = await this.productService.getProductList(storeId);
         //매장 운영 정보
         const storeOpenChk = await this.storeService.getStoreOpenChk(storeId);
@@ -46,8 +52,11 @@ export class SmartorderController {
                         @Query('storeId') storeId: string,
                         @Query('productId') productId: string) {
         //매장 운영 확인
+        ////get_store_info($store_id) 이용해서 가져옴
         const storeOpenChk = await this.storeService.getStoreOpenChk(storeId);
+        
         //아이템 상세정보 조회
+        //get_item_info //외부 api
         const productDetail = await this.productService.getProductDetail(productId);                           
         let body = {
             storeOpenChk: storeOpenChk,
@@ -57,13 +66,15 @@ export class SmartorderController {
         return res.json(body);        
     } 
 
-    //장바구니 추가 
-    @Post('cart/add')
+    //장바구니 추가 ajax_insert_cart.php 참고
+    @Post('cart/add') 
     async setCart(@Res() res:Response, @Body() productDto: ProductDto) {
         //아이템 품절 확인 
+        //get_item_info 외부 api로 품절확인 
         const productStockChk = await this.productService.getProductStockChk(productDto.productId); 
         if(productStockChk) {
             //장바구니 상품 수량변경
+            //insert_cart_option 외부 api 
         }
        
     }
@@ -71,31 +82,84 @@ export class SmartorderController {
     //결제하기
     @Post('payment') 
     async order(@Res() res:Response, @Body() productDto: ProductDto) {
-        //매장 영업시간 재확인 
-        const storeOpenChk = await this.storeService.getStoreOpenChk(productDto.storeId);
-        const stockChk = await this.productService.getProductStockChk(productDto.productId); 
-        let body = {storeOpenChk: storeOpenChk,
-                    stockChk: stockChk};
         
-        //장바구니 품절 확인 
+        //매장 운영 확인
+        ////get_store_info($store_id) 이용해서 가져옴
+        const storeOpenChk = await this.storeService.getStoreOpenChk(productDto.storeId);
+        
+        //아이템 품절 확인 
+        //get_item_info 외부 api로 품절확인 
+        const productStockChk = await this.productService.getProductStockChk(productDto.productId); 
+        
+        if(productStockChk) {
+            //장바구니 상품 수량변경
+            //insert_cart_option 외부 api 
+        }
         
         //주문 프로세스 (매장영업시간 & 재고충분)
-        if(storeOpenChk && stockChk) {
+        if(storeOpenChk && productStockChk) {
            
         } else {
 
         }
-        res.json(body);
+        //res.json(body);
         
     }
 
 
     //장바구니 조회 
+    async cartList() {
+        //사용자 정보 저장
+        //$sql = "insert into user_info (uid, user_name, push_token) values ('".$uid."','".$user_name."','".$token."') ".
+        //"on duplicate key update user_name=values(user_name),push_token=values(push_token)";
+
+        //매장 운영 확인
+        //get_store_info($store_id) 이용해서 가져옴
+
+        //장바구니 정보
+        //get_basket_info 외부 api 사용
+    }
+
+    //장바구니 삭제
+    async deleteCart() {
+        //삭제
+        //delete_cart 외부 api 사용
+    }
+
+    //주문 목록 order_history.php
+    async orderList() {
+        //주문목록 조회 
+        //get_order_list 외부 api
+
+        //주문 상태 조회 
+        //$sql = "select * from ks_order where order_id='$order_id'";
+    }
+
+    //주문상세 order_detail.php
+    async orderDetail() {
+        //주문내역 조회(매장아이디, 주문금액, 결제 금액, 주문상태)
+        //$sql = "select * from ks_order where order_id=%s";
+            //$store_id = $order_row['store_id'];         // 매장아이디
+            //$total_price = $order_row['total_price'];   // 주문 금액
+            //$pay_price = $order_row['pay_price'];       // 결제 금액
+            //$ks_status = $order_row['status'];       // 주문 상태
+
+
+        //주문상세
+        //get_order_detail 외부 api
+
+
+
+        //주문내역상세
+        //$sql = "select * from ks_order_detail where order_id=%s";
+            //item_type
+            //item_name
+            //item_qty
+            //item_price
+    }
 
     //장바구니 변경(아이템, 갯수, uid)
+    //->    @Post('cart/add') 사용 
 
-    //주문 목록
-
-    //주문 상세 
 
 }

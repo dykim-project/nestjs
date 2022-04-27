@@ -6,7 +6,6 @@ import { text } from 'express';
 import { RequestInterceptor } from './interceptor/request.interceotor';
 import { AllExceptionsFilter } from './exception/allCatch.exception';
 import { ValidationPipe } from '@nestjs/common';
-import { TransformInterceptor } from './interceptor/transform.interceptor';
 require('dotenv').config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule,  { cors: true });
@@ -18,7 +17,6 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
   app.useGlobalPipes(new ValidationPipe({forbidNonWhitelisted: true}));
   //app.useGlobalInterceptors(new RequestInterceptor());
-  //app.useGlobalInterceptors(new TransformInterceptor());
   await app.listen(3000);
 }
 bootstrap();

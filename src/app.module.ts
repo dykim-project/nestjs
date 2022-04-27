@@ -33,6 +33,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
       consumer
       .apply(RawbodyMiddleware)
-      .forRoutes('sample'); //해당주소로 시작하는 url에 적용 
+      .forRoutes('/'); //해당주소로 시작하는 url에 적용 
   }
 }
