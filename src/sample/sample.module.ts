@@ -6,7 +6,6 @@ import { sample } from '../entity/sample.entity';
 import { sample2 } from '../entity/sample2.entity';
 @Module({
   imports: [SequelizeModule.forFeature([sample])
-  ,SequelizeModule.forFeature([sample2], 'mddb')
  ], 
   providers: [SampleService],
   controllers: [SampleController]

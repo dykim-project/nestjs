@@ -18,10 +18,10 @@ export class SampleController {
       return common;
     }
     
-    @Get('product')
-    findAllProduct(): Promise<sample2[]> {
-      return this.usersService.productAll();
-    }
+    // @Get('product')
+    // findAllProduct(): Promise<sample2[]> {
+    //   return this.usersService.productAll();
+    // }
 
     @Get('getone/:id')
     findOne(@Param('id', ParseIntPipe) id: number): Promise<void> {

@@ -37,7 +37,7 @@ export class SmartorderController {
             productList: productList,
             storeOpenChk: storeOpenChk
         }
-        return body;
+        return res.json(body);
     }
 
     //product 상세
@@ -65,11 +65,7 @@ export class SmartorderController {
         if(productStockChk) {
             //장바구니 상품 수량변경
         }
-        let body = {
-            productStockChk: productStockChk,
-            productCnt: 2 //아이템 총 갯수 return
-        }
-        return res.json(productDto);
+       
     }
 
     //결제하기
@@ -93,11 +89,6 @@ export class SmartorderController {
         
     }
 
-    //테스트
-    @Post('test')
-    send() {
-        throw new ServiceUnavailableException('ResultMsg');
-    }
 
     //장바구니 조회 
 

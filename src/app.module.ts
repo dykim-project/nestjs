@@ -16,12 +16,7 @@ const dbConfig = process.env.NODE_ENV === 'dev' ? devConfig : prodConfig;
   SequelizeModule.forRoot({
       ...dbConfig.accountdb
     }
-  ),
-  SequelizeModule.forRoot({
-    ...dbConfig.mddb
-    ,name: 'mddb'
-  }
-), 
+  ), 
   SampleModule,
   CartModule,
   SmartorderModule,

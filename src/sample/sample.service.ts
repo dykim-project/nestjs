@@ -11,27 +11,27 @@ export class SampleService {
         @InjectModel(sample)
         private sampleModel: typeof sample,
 
-        @InjectModel(sample2, 'mddb')
-        private productModel: typeof sample2,
+        //@InjectModel(sample2, 'mddb')
+        //private productModel: typeof sample2,
 
         @InjectConnection()
         private sequelize: Sequelize,
 
-        @InjectConnection('mddb')
-        private sequelizeMd: Sequelize,
+        // @InjectConnection('mddb')
+        // private sequelizeMd: Sequelize,
       ) {}
 
       async findAll(): Promise<sample[]> {
         return this.sampleModel.findAll();
       }
 
-      async productAll(): Promise<sample2[]> {
-        try {
-          return this.productModel.findAll();
-        } catch(error) {
-          console.log(error);
-        }
-      }
+      // async productAll(): Promise<sample2[]> {
+      //   try {
+      //     return this.productModel.findAll();
+      //   } catch(error) {
+      //     console.log(error);
+      //   }
+      // }
 
 
 
