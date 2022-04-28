@@ -19,7 +19,7 @@ export class ProcessException extends InternalServerErrorException {
       .status(status)
       .json({
         statusCode: 502,
-        statusMessage: '잘못된 요청입니다.'
+        statusMessage: this.message,
       });
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Render, Res } from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Param, ParseIntPipe, Post, Render, Res, ServiceUnavailableException } from '@nestjs/common';
 import { Response } from 'express';
 import { sample } from '../entity/sample.entity';
 import { SampleService } from './sample.service';
@@ -10,6 +10,7 @@ export class SampleController {
 
     @Get()
     findAll(): Promise<sample[]> {
+      throw new InternalServerErrorException('', 'REGIST_ORDER_FAIL');
       return this.usersService.findAll();
     }
 

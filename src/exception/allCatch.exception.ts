@@ -7,6 +7,7 @@ import {
     NotFoundException,
     BadRequestException,
     ServiceUnavailableException,
+    InternalServerErrorException,
   } from '@nestjs/common';
   import { HttpAdapterHost } from '@nestjs/core';
   import { logger } from '../config/winston';
@@ -34,7 +35,8 @@ import { ProcessException } from './process.exception';
             } 
 
             //결제 중 오류인경우 front에서 message 그대로 보여줌 
-            if(exception instanceof ServiceUnavailableException) {
+            if(exception instanceof InternalServerErrorException) {
+              console.log(exception.getStatus);
               resultMessage = exception.message;
             }
 

@@ -153,6 +153,12 @@ export class SmartorderController {
             //item_price
     }
 
+    //주문 취소 ajax_order_cancel.php
+    async orderCancel() {
+        
+    }
+
+
     //장바구니 변경(아이템, 갯수, uid)
     //->    @Post('cart/add') 사용 
 
