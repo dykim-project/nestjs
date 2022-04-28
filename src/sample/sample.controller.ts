@@ -4,6 +4,7 @@ import { sample } from '../entity/sample.entity';
 import { SampleService } from './sample.service';
 import { sample2 } from 'src/entity/sample2.entity';
 import { CommonDto } from 'src/dto/commonDto';
+import { ProductDto } from 'src/dto/productDto';
 @Controller('sample')
 export class SampleController {
     constructor(private readonly usersService: SampleService) {}
@@ -15,8 +16,8 @@ export class SampleController {
     }
 
     @Post('common')
-    getCommon(@Body() common: CommonDto): CommonDto {
-      return common;
+    getCommon(@Body() productDto: ProductDto): any {
+      return productDto;
     }
     
     // @Get('product')

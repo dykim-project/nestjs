@@ -2,15 +2,13 @@ import { Body, Controller, Get, InternalServerErrorException, Param, ParseIntPip
 import { Response } from 'express';
 import { CommonDto } from 'src/dto/commonDto';
 import { ProductDto } from 'src/dto/productDto';
-import { PaymentService } from 'src/payment/payment.service';
 import { ProductService } from './product.service';
 import { StoreService } from './store.service';
 
 @Controller()
 export class SmartorderController {
     constructor(private readonly storeService: StoreService,
-                private readonly productService: ProductService,
-                private paymentService: PaymentService) {}
+                private readonly productService: ProductService) {}
     
     //매장 목록
     @Get('store/list')
@@ -52,7 +50,6 @@ export class SmartorderController {
                         @Query('storeId') storeId: string,
                         @Query('productId') productId: string) {
         //매장 운영 확인
-        ////get_store_info($store_id) 이용해서 가져옴
         const storeOpenChk = await this.storeService.getStoreOpenChk(storeId);
         
         //아이템 상세정보 조회
@@ -65,61 +62,6 @@ export class SmartorderController {
         }
         return res.json(body);        
     } 
-
-    //장바구니 추가 ajax_insert_cart.php 참고
-    @Post('cart/add') 
-    async setCart(@Res() res:Response, @Body() productDto: ProductDto) {
-        //아이템 품절 확인 
-        //get_item_info 외부 api로 품절확인 
-        const productStockChk = await this.productService.getProductStockChk(productDto.productId); 
-        if(productStockChk) {
-            //장바구니 상품 수량변경
-            //insert_cart_option 외부 api 
-        }
-       
-    }
-
-    //상품 상세 - 주문하기
-    @Post('order') 
-    async order(@Res() res:Response, @Body() productDto: ProductDto) {
-        
-        //매장 운영 확인
-        ////get_store_info($store_id) 이용해서 가져옴
-        const storeOpenChk = await this.storeService.getStoreOpenChk(productDto.storeId);
-        
-        //아이템 품절 확인 
-        //get_item_info 외부 api로 품절확인 
-        const productStockChk = await this.productService.getProductStockChk(productDto.productId); 
-        
-        if(productStockChk) {
-            //장바구니 상품 수량변경
-            //insert_cart_option 외부 api 
-        }
-        
-        //정상처리후 front에서는 장바구니 상세화면으로 이동
-        //res.json(body);
-        
-    }
-
-
-    //장바구니 조회 
-    async cartList() {
-        //사용자 정보 저장
-        //$sql = "insert into user_info (uid, user_name, push_token) values ('".$uid."','".$user_name."','".$token."') ".
-        //"on duplicate key update user_name=values(user_name),push_token=values(push_token)";
-
-        //매장 운영 확인
-        //get_store_info($store_id) 이용해서 가져옴
-
-        //장바구니 정보
-        //get_basket_info 외부 api 사용
-    }
-
-    //장바구니 삭제
-    async deleteCart() {
-        //삭제
-        //delete_cart 외부 api 사용
-    }
 
     //주문 목록 order_history.php
     async orderList() {
@@ -155,7 +97,7 @@ export class SmartorderController {
 
     //주문 취소 ajax_order_cancel.php
     async orderCancel() {
-        
+
     }
 
 

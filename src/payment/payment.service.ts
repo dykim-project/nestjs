@@ -12,18 +12,6 @@ export class AuthResultDto {
 export class PaymentService {
     //ajax_order_regist.php 참고
     
-    //장바구니 조회
-    async getBasketInfo(): Promise<Basket[]> {
-        const basketList = new Array<Basket>();
-        return basketList;
-    }
-
-    //장바구니 재고 확인
-    async chkBasketStock(basket: Basket): Promise<boolean> {
-        //phpsorce - get_basket_info 외부 api로 품절확인
-        return true;
-    }
-
     //'regist_cart'로 주문서 등록 & 주문TB저장
     async registCart() {
         try {
@@ -112,7 +100,7 @@ export class PaymentService {
         } catch(error) { 
             logger.error('[payment.nicepayAuth]');
             logger.error(error);
-            throw new InternalServerErrorException('NICEPAY_AUTH_FAIL');
+            throw new InternalServerErrorException('PAYMENT_FAIL');
      }
     }    
     
@@ -125,7 +113,7 @@ export class PaymentService {
             await this.cancelNetwork();
             logger.error('[payment.nicepayApproval]');
             logger.error(error);
-            throw new InternalServerErrorException('NICEPAY_APPROVAL_FAIL');
+            throw new InternalServerErrorException('PAYMENT_FAIL');
         }
     }
 
@@ -167,7 +155,7 @@ export class PaymentService {
         } catch(error) {
             logger.error('[payment.cancelNetwork error]');
             logger.error(error);
-            throw new InternalServerErrorException('CANCEL_NETWORK_FAIL');
+            throw new InternalServerErrorException('PAYMENT_FAIL');
         }
     }
 
@@ -175,13 +163,13 @@ export class PaymentService {
     async cancelPayment() {
         try{
             //cancelResult_utf.php참고  url 호출
-
+            const result = await this.cancelAjax();
             //결과  $response['ResultCode'] != '2001' <-실패상태
-            if (true) {
+            if (result.resultCode != '2001') {
                 //front - 결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다
-                throw new InternalServerErrorException('CANCEL_PAYMENT_FAIL');
-                logger.error(['payment.cancelPayment']);
-                //logger.error(response.ResultMsg);
+                logger.error(`[payment.cancelPayment] resultCode: ${result.resultCode}`);
+                logger.error(result.resultMsg);
+                throw new InternalServerErrorException('PAYMENT_FAIL');
             } else {
               //결제 취소 성공시 상태 변경
               await this.updateOrderStatus('', 'EC9999'); 
@@ -191,8 +179,12 @@ export class PaymentService {
             //'ResultCode' => '9999',
 			//'ResultMsg' => '통신실패'
             logger.error(['payment.cancelPayment']);
-            throw new InternalServerErrorException('CANCEL_PAYMENT_FAIL');
+            throw new InternalServerErrorException('PAYMENT_FAIL');
         }
 
+    }
+
+    async cancelAjax() {
+        return {resultCode:'', resultMsg:''}
     }
 }

@@ -29,6 +29,7 @@ export class StoreService {
 
     //매장 운영 확인
     //return storeStatus: true/ false
+    //phpsoruce - get_store_info($store_id) 
     async getStoreOpenChk(storeId: string): Promise<boolean> {
         //let result = false;
         

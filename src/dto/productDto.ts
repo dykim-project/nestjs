@@ -1,8 +1,12 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsNotEmpty, IsNumber, IsNumberString } from 'class-validator';
+import { ArrayContains, IsEnum, IsNotEmpty, IsNumber, IsNumberString } from 'class-validator';
 import { CommonDto } from './commonDto';
 
-export class ProductDto extends   PartialType(CommonDto){
+enum orderType {
+    order = 'order',
+    addcart = 'addcart'
+}
+export class ProductDto extends PartialType(CommonDto) {
     @IsNotEmpty()
     @IsNumberString()
     readonly uid: number;
@@ -14,4 +18,8 @@ export class ProductDto extends   PartialType(CommonDto){
     productCnt: number;
 
     storeId: string;
+
+    @IsNotEmpty() 
+    @IsEnum(orderType)
+    orderType: string;
 }

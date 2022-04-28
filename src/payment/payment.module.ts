@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { CartService } from 'src/smartorder/cart.service';
 import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
 
 @Module({
   controllers: [PaymentController],
-  providers: [PaymentService]
+  providers: [PaymentService, CartService]
 })
 export class PaymentModule {}

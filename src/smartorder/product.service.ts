@@ -20,6 +20,8 @@ export class ProductService {
     }
 
     //재고 확인 
+    ////get_item_info 외부 api로 품절확인 
+    //true 재고있음 false 재고 없음
     getProductStockChk(productId: string) {
         return false;
     }

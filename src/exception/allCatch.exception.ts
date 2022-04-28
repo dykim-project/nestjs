@@ -8,6 +8,7 @@ import {
     BadRequestException,
     ServiceUnavailableException,
     InternalServerErrorException,
+    Res,
   } from '@nestjs/common';
   import { HttpAdapterHost } from '@nestjs/core';
   import { logger } from '../config/winston';
@@ -28,21 +29,26 @@ import { ProcessException } from './process.exception';
           : HttpStatus.INTERNAL_SERVER_ERROR;
       let resultMessage = httpStatus === 500 ? 'server Error' : '잘못된 요청입니다' ;
         if(exception instanceof HttpException){
-            logger.warn(`[http exception]`);
-            logger.warn(exception.getResponse());
+            logger.error(`[http exception]`);
+            logger.error(exception.getResponse());
             if(exception.message) {
-              resultMessage = `${exception.name} : ${exception.message}`; 
+              let res:any = exception.getResponse();
+              resultMessage = `${exception.name} - ${exception.message} :`; 
+              //dao validation chk message 
+              if(res.message) {
+                resultMessage += res.message[0];
+              } 
             } 
 
             //결제 중 오류인경우 front에서 message 그대로 보여줌 
             if(exception instanceof InternalServerErrorException) {
-              console.log(exception.getStatus);
+              logger.error(exception.getStatus);
               resultMessage = exception.message;
             }
 
-            if(exception instanceof BadRequestException) {
-              resultMessage = `잘못된 요청입니다`;
-            }
+            // if(exception instanceof BadRequestException) {
+            //   resultMessage = `잘못된 요청입니다`;
+            // }
           }
         
 
