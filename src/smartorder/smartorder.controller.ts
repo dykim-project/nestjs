@@ -46,7 +46,7 @@ export class SmartorderController {
         return res.json(body);
     }
 
-    //product 상세
+    //상품 상세
     @Get('product/detail')
     async getProductDetail(@Res() res:Response, 
                         @Query('storeId') storeId: string,
@@ -79,8 +79,8 @@ export class SmartorderController {
        
     }
 
-    //결제하기
-    @Post('payment') 
+    //상품 상세 - 주문하기
+    @Post('order') 
     async order(@Res() res:Response, @Body() productDto: ProductDto) {
         
         //매장 운영 확인
@@ -96,12 +96,7 @@ export class SmartorderController {
             //insert_cart_option 외부 api 
         }
         
-        //주문 프로세스 (매장영업시간 & 재고충분)
-        if(storeOpenChk && productStockChk) {
-           
-        } else {
-
-        }
+        //정상처리후 front에서는 장바구니 상세화면으로 이동
         //res.json(body);
         
     }
