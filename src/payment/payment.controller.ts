@@ -15,7 +15,7 @@ export class PaymentController {
 
         //ajax_order_regist.php 참고 
         //장바구니 정보 조회
-        const basketInfo = await this.cartService.getBasketInfo();
+        const basketInfo = await this.cartService.getCartList(111111);
         //1.장바구니 최종 재고 확인
         const chkStock = basketInfo.every(async data=> {
             await this.cartService.chkBasketStock(data);//재고확인

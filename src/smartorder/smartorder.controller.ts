@@ -39,7 +39,8 @@ export class SmartorderController {
         let body = {
             storeDetail: storeDetail,
             productList: productList,
-            storeOpenChk: storeOpenChk
+            storeOpenChk: storeOpenChk,
+            statusCode: 200
         }
         return res.json(body);
     }
@@ -57,7 +58,7 @@ export class SmartorderController {
         const productDetail = await this.productService.getProductDetail(productId);                           
         let body = {
             storeOpenChk: storeOpenChk,
-            product: productDetail,
+            productDetail: productDetail,
             statusCode: 200
         }
         return res.json(body);        
@@ -101,8 +102,6 @@ export class SmartorderController {
     }
 
 
-    //장바구니 변경(아이템, 갯수, uid)
-    //->    @Post('cart/add') 사용 
 
 
 }
