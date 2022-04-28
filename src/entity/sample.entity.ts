@@ -1,9 +1,9 @@
-import { AutoIncrement, Column, HasMany, Model, Sequelize, Table } from 'sequelize-typescript';
+import { AutoIncrement, Column, DataType, HasMany, Model, Sequelize, Table } from 'sequelize-typescript';
 import sequelize from 'sequelize/types/sequelize';
 import { sample2 } from './sample2.entity';
 
 @Table({
-    tableName: 'test',
+    tableName: 'test4',
     updatedAt: false ,
     timestamps: true, 
   }) 
@@ -18,6 +18,9 @@ export class sample extends Model {
 
     @Column
     account: number;
+    
+    @Column({type: DataType.STRING(20)}) 
+    temp: string;
 
     @Column({ defaultValue: 0 })
     total: number;

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
+import { CartService } from 'src/cart/cart.service';
 import { PaymentService } from 'src/payment/payment.service';
-import { CartService } from './cart.service';
 import { ProductService } from './product.service';
 import { SmartorderController } from './smartorder.controller';
 import { StoreService } from './store.service';

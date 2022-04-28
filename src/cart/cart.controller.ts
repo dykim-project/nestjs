@@ -55,6 +55,7 @@ export class CartController {
      }
  
      //장바구니 삭제 ajax_delete_cart.php
+     @Post('delete')
      async deleteCart() {
          //삭제
          //delete_cart 외부 api 사용
