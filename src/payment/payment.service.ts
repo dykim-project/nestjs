@@ -4,10 +4,11 @@ import axios from 'axios';
 import { Request } from 'express';
 import { throwError, timestamp } from 'rxjs';
 import { logger } from 'src/config/winston';
+import { PaymentDto } from 'src/dto/paymentDto';
 import { Basket } from 'src/entity/basket.entity';
 import { order } from 'src/entity/order.entity';
 import { orderDetail } from 'src/entity/orderDetail.entity';
-import { ProcessException } from 'src/exception/process.exception';
+import { kisServerCon } from '../utils/kis.server.connection';
 import { common } from '../utils/common';
 
 export class AuthResultDto {
@@ -26,24 +27,30 @@ export class PaymentService {
     //ajax_order_regist.php 참고
     
     //'regist_cart'로 주문서 등록 & 주문TB저장
-    async registCart(req: Request) {
+    async registCart(paymentDto: PaymentDto): Promise<any> {
         try {
-        //phpsorce - regist_cart 주문서 등록 
-        //$regist_result = regist_cart($uid, $store_id);
-        //3.주문서 등록 실패시 
-        //if ($regist_result['rst'] == 0) {
-            //throw new ServiceUnavailableException(error, 'REGIST_CART_FAIL');
-        //} else {
+            //phpsorce - regist_cart 주문서 등록 
+            const data = {chnlMbrId: paymentDto.uid, 
+                            strId:paymentDto.storeId, 
+                            ordrKindCdPrefix:'2'}; //ordrKindCdPrefix는 '2'를 고정으로 전달 한다.
+        
+            let result = await kisServerCon('/api/channel/nonpage/order/getSubmitInfo', data);
+            if(result.data.success) {
+                result = result.data.data;
+            } else {
+                common.logger(result.data, '[payment.registCart kis-server]');
+                common.errorException(502, 'REGIST_CART_FAIL', result.data);
+            }
 
             const date = new Date();
             const year:string = date.getFullYear().toString();
             const month:string = ("0" + (date.getMonth() + 1)).slice(-2);
             const day:string = ("0" + date.getDate()).slice(-2);
             //주문 TB 저장
-            const data = {
-                orderId:'order1010103',
+            const saveData = {
+                orderId: result.ordrId,//'order1010103',//서버에서 생성함 
                 userSeq: 0,
-                storeId: 'ST00101010',
+                storeId: paymentDto.storeId,//'ST00101010',
                 orderType: 0,//0, //0 픽업, 
                 orderDate: date.getTime(),
                 orderYmd: year + month + day,
@@ -54,14 +61,16 @@ export class PaymentService {
                 //payType: '',
                 //couponCategory
                 //couponId
-                addr:'' , //$seat_area."|".$seat_name."|".$seat_num;
-                tel: '',
-                uid: '11111111', 
-                user_id: 'temp_Id',
-                user_name: 'name',
-                os_type: this.getUserAgent(req)
+                addr:paymentDto.orderAddr , //$seat_area."|".$seat_name."|".$seat_num;
+                tel: paymentDto.userTel,
+                uid: paymentDto.uid, 
+                user_id: paymentDto.userId,//'temp_Id',
+                user_name: paymentDto.userName,// 'name',
+                os_type: paymentDto.osType
             }
-            const result = await this.orderModel.create(data);
+            const insertResult = await this.orderModel.create(saveData);
+            paymentDto.orderId = result.ordrId;
+            return paymentDto;
         } catch (error) {
             common.logger(error, '[payment.registCart]');
             //front - 장바구니 등록에 실패했습니다
@@ -70,37 +79,59 @@ export class PaymentService {
     }
 
     //주문상세tb insert & 주문tb update
-    async orderDetailSave(basket: Basket[]) {
+    async orderDetailSave(basket: any[], paymentDto: PaymentDto) {
         try {
             let totalPrice = 0;
             let totalCnt = 0;
             basket.forEach(async data => {
+                //------------------------------------------------
+                let itemId = "";
+                let itemName = "";
+                let itemQty = 0;
+                let itemPrice = 0;
+                let itemType = data.prdOptCd;
+                if (itemType == "S") { // 메인상품
+                    itemId = data.upPrdId;
+                    itemName = data.prdNm;
+                    itemQty = data.ordrCnt;
+                    itemPrice = data.salePrc;
+                } else { // 옵션상품
+                    itemId = data.prdId;
+                    itemName = `${data.prdOptNm} > ${data.prdNm}`;
+                    itemQty = data.ordrCnt;
+                    itemPrice = data.optPrc;
+                }
+                //----------------------------------------------------
                 //주문상세 tb insert
                 let date = new Date();
                 let inputData = {
-                    orderId:'',
-                    userSeq: '',
-                    storeId:'',
-                    itemId: '',
-                    itemType: 'O', 
-                    itemName: '',
-                    itemPrice: '',
-                    itemQty: 0,
-                    basketId: '11111',
-                    basketIdDetail: '222', 
+                    orderId:paymentDto.orderId,
+                    userSeq: 0,
+                    storeId:paymentDto.storeId,
+                    itemId: itemId,
+                    itemType: data.prdOptCd, 
+                    itemName: itemName,
+                    itemPrice: itemPrice,
+                    itemQty: itemQty,
+                    basketId: data.baskId,
+                    basketIdDetail: data.baskDtlId, 
                     regDate: date.getTime()
                 }
                 await this.orderDetailModel.create(inputData);
                 //총금액 & 총갯수 count 
+                totalCnt += itemQty;
+                totalPrice += (itemQty * itemPrice);
             });
             //주문tb 상품 총가격 & 갯수 update
             const result = await this.orderModel.update(
-                {totalPrice: 10000,
-                    sumProductQty: 10
+                {totalPrice: totalPrice,
+                    sumProductQty: totalCnt
                 },
-                {where : {orderId: 'orderIdd'} }
+                {where : {orderId: paymentDto.orderId} }
             );
-
+            paymentDto.totalPrice = totalPrice;
+            paymentDto.sumProductQty =  totalCnt;
+            return paymentDto;
         } catch(error) {
             common.logger(error, '[payment.orderDetailSave]');
             //front - 주문서 등록중 오류가 발생했습니다
@@ -109,13 +140,30 @@ export class PaymentService {
     }
 
     //주문 등록 phpsource - regist_order로 주문등록
-    async registOrder() {
-        try {
-
-        } catch(error) {
-            common.logger(error, '[payment.registOrder]');
+    async registOrder(paymentDto: PaymentDto) {
+        //paymentDto.totalPrice ===0 이면 error 처리 
+        const data = {chnlMbrId: paymentDto.uid,
+                        strId: paymentDto.storeId,
+                        ordrId: paymentDto.orderId,
+                        payMthdCd: 'PC',
+                        PayMethod: 'CARD',
+                        pgCd: 'WL',
+                        ordrKindCd: '2ICP',
+                        payPrc: paymentDto.totalPrice, 
+                        ordrPrc: paymentDto.totalPrice,
+                        prePayCd: 'P',
+                        postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
+                        ordrCnct: paymentDto.userTel,
+                        ordrDesc: (paymentDto.customerReq).substring(0, 100),
+                        discPrc: 0 
+                    };
+        let result = await kisServerCon('/api/channel/nonpage/order/insert', data);
+        if(result.data.success) {
+            result = result.data.data;
+        } else {
             //front- 주문 등록중 오류가 발생했습니다
-            common.errorException(502, 'REGIST_ORDER_FAIL', error);
+            common.logger(result.data, '[payment.registOrder]');
+            common.errorException(502, 'REGIST_ORDER_FAIL', result.data);
         }
     }
 
@@ -277,3 +325,4 @@ export class PaymentService {
     
     
 }
+

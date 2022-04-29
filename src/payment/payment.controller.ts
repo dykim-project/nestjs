@@ -4,6 +4,7 @@ import { CartService } from 'src/cart/cart.service';
 import { PaymentDto } from 'src/dto/paymentDto';
 import { Basket } from 'src/entity/basket.entity';
 import { PaymentService } from './payment.service';
+import { common } from '../utils/common';
 
 @Controller('payment')
 export class PaymentController {
@@ -14,24 +15,22 @@ export class PaymentController {
     async payment(@Req() req: Request, @Res() res: Response, @Body() paymentDto: PaymentDto ){
 
         //장바구니 정보 조회
-        const basketInfo = await this.cartService.getCartList(111111);
+        const basketInfo = await this.cartService.getCartList(paymentDto.uid);
         //1.장바구니 최종 재고 확인
-        const chkStock = basketInfo.every(async data=> {
-            await this.cartService.chkBasketStock(data);//재고확인
+        await basketInfo.every(async data => {
+            let itemStatusCode = data.prdSaleCdStk;
+            if(itemStatusCode != 'OS') {
+                res.json({ststusCode:204, resultMsg: 'FORBIDDEN_MENU'})
+            }
         }); 
-        if(!chkStock) {
-            //response 
-            //front - "주문할 수 없는 메뉴입니다."
-            throw new InternalServerErrorException('FORBIDDEN_MENU');
-        }
         //2. 외부api regist_cart로 주문서 등록 
-        await this.paymentService.registCart(req);
+        let resultDto = await this.paymentService.registCart(paymentDto);
 
         //4.주문상세tb 저장 & 주문tb 총금액 update 
-        await this.paymentService.orderDetailSave(basketInfo);
+        resultDto = await this.paymentService.orderDetailSave(basketInfo, paymentDto);
 
         //6. 외부 api regist_order로 주문서 접수 
-        await this.paymentService.registOrder();
+        await this.paymentService.registOrder(paymentDto);
         
         //---nice pay결제---------------------- 
         //6.결제 인증요청(nicepayment 인증요청)  payRequest_utf.php 참고

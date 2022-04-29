@@ -8,6 +8,7 @@ import { userInfo } from "src/entity/userInfo.entity";
 import { kisServerCon } from '../utils/kis.server.connection';
 import { common } from '../utils/common';
 import { AddCartDto } from "src/dto/addCartDto";
+import { isNotEmpty } from "class-validator";
 
 @Injectable()
 export class CartService {
@@ -106,11 +107,7 @@ export class CartService {
         return {sumProductQty, sumProductPrice};
     }
 
-    //장바구니상품 재고 확인
-    async chkBasketStock(basket: Basket): Promise<boolean> {
-        //phpsorce - get_basket_info 외부 api로 품절확인
-        return true;
-    }
+
     
     //사용자 정보 저장
     async saveUserInfo(cartDto: CartDto) {
