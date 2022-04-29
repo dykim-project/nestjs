@@ -8,8 +8,8 @@ export class sample2 extends Model {
     @Column({primaryKey: true})
     id: number;
   
-    @Column
-    name: string;
+    @Column('name')
+    name_222: string;
 
     @Column
     age: number;

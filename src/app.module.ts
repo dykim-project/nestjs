@@ -10,11 +10,11 @@ import { PaymentModule } from './payment/payment.module';
 import { CartModule } from './cart/cart.module';
 const devConfig = require('./config/db.dev.config');
 const prodConfig = require('./config/db.prod.config');
-const dbConfig = process.env.NODE_ENV === 'dev' ? devConfig : prodConfig;
+const dbConfig = process.env.NODE_ENV == 'dev' ? prodConfig : devConfig;
 @Module({
   imports: [
   SequelizeModule.forRoot({
-      ...dbConfig.accountdb
+      ...dbConfig
     }
   ), 
   SampleModule,

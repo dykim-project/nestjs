@@ -1,17 +1,24 @@
-import { Body, Controller, Get, InternalServerErrorException, Param, ParseIntPipe, Post, Render, Res, ServiceUnavailableException } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Get, InternalServerErrorException, Param, ParseIntPipe, Post, Render, Req, Res, ServiceUnavailableException } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { sample } from '../entity/sample.entity';
 import { SampleService } from './sample.service';
 import { sample2 } from 'src/entity/sample2.entity';
 import { CommonDto } from 'src/dto/commonDto';
 import { ProductDto } from 'src/dto/productDto';
+import { PaymentService } from 'src/payment/payment.service';
+import { InjectModel } from '@nestjs/sequelize';
+import { userInfo } from 'src/entity/userInfo.entity';
 @Controller('sample')
 export class SampleController {
-    constructor(private readonly usersService: SampleService) {}
+    constructor(private readonly usersService: SampleService,
+      private readonly paymentService: PaymentService,
+      @InjectModel(userInfo)
+      private userInfoModel: typeof userInfo
+      ) {}
 
     @Get()
-    findAll(): Promise<sample[]> {
-      throw new InternalServerErrorException('', 'REGIST_ORDER_FAIL');
+    async findAll(@Req() req: Request): Promise<sample[]> {
+      //await this.paymentService.registCart(req);
       return this.usersService.findAll();
     }
 
@@ -27,7 +34,7 @@ export class SampleController {
 
     @Get('getone/:id')
     findOne(@Param('id', ParseIntPipe) id: number): Promise<void> {
-      return this.usersService.findOne2(id);
+      return this.usersService.findOne(id);
     }
 
     @Get('getelse/:id')

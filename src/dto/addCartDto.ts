@@ -1,14 +1,11 @@
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { CommonDto } from './commonDto';
+import { ProductDto } from './productDto';
 
-export class CartDto extends CommonDto {
+export class AddCartDto extends ProductDto {
     @IsNotEmpty()
-    uid: number;
-    
+    itemId: string;
     @IsNotEmpty()
-    userName: string;
-    
-    @IsNotEmpty()
-    pushToken: string;
+    itemQty: number;
 
 }

@@ -13,10 +13,10 @@ async function bootstrap() {
   app.use(helmet());
   app.use(urlencoded({extended: true}));
   app.use(text()); 
-  const httpAdapterHost  = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
+  //const httpAdapterHost  = app.get(HttpAdapterHost);
+  //app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
   app.useGlobalPipes(new ValidationPipe({forbidNonWhitelisted: true}));
-  //app.useGlobalInterceptors(new RequestInterceptor());
+  app.useGlobalInterceptors(new RequestInterceptor());
   await app.listen(3000);
 }
 bootstrap();

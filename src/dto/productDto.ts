@@ -7,18 +7,6 @@ enum orderType {
     addcart = 'addcart'
 }
 export class ProductDto extends PartialType(CommonDto) {
-    @IsNotEmpty()
-    @IsNumberString()
-    readonly uid: number;
-
-    @IsNotEmpty()
-    productId: string;
-
-    @IsNotEmpty()
-    productCnt: number;
-
-    storeId: string;
-
     @IsNotEmpty() 
     @IsEnum(orderType)
     orderType: string;

@@ -1,21 +1,10 @@
 module.exports = {
-    'accountdb':{
-        dialect: 'postgres',
+        dialect: 'mysql',
         host: 'localhost',
-        port: 5434,
-        username: 'postgres',
+        port: 3306,
+        username: 'root',
         password: 'admin',
-        database: 'account',
+        database: 'order_temp',
         autoLoadModels: true,
-        synchronize: true
-    },'mddb':{
-        dialect: 'postgres',
-        host: 'localhost',
-        port: 5434,
-        username: 'postgres',
-        password: 'admin',
-        database: 'md',
-        autoLoadModels: true,
-        synchronize: true 
-    }
+        synchronize: false
 }

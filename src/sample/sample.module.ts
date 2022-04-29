@@ -4,10 +4,14 @@ import { SampleController } from './sample.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { sample } from '../entity/sample.entity';
 import { sample2 } from '../entity/sample2.entity';
+import { PaymentService } from 'src/payment/payment.service';
+import { orderDetail } from 'src/entity/orderDetail.entity';
+import { order } from 'src/entity/order.entity';
+import { userInfo } from 'src/entity/userInfo.entity';
 @Module({
-  imports: [SequelizeModule.forFeature([sample])
+  imports: [SequelizeModule.forFeature([sample, order, orderDetail, userInfo])
  ], 
-  providers: [SampleService],
+  providers: [SampleService, PaymentService],
   controllers: [SampleController]
 })
 export class SampleModule {}

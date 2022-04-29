@@ -1,8 +1,14 @@
-import { Injectable, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
 import axios from 'axios';
+import { Request } from 'express';
+import { throwError, timestamp } from 'rxjs';
 import { logger } from 'src/config/winston';
 import { Basket } from 'src/entity/basket.entity';
+import { order } from 'src/entity/order.entity';
+import { orderDetail } from 'src/entity/orderDetail.entity';
 import { ProcessException } from 'src/exception/process.exception';
+import { common } from '../utils/common';
 
 export class AuthResultDto {
 
@@ -10,10 +16,17 @@ export class AuthResultDto {
 
 @Injectable()
 export class PaymentService {
+    constructor(
+        @InjectModel(order)
+        private orderModel: typeof order,
+        
+        @InjectModel(orderDetail)
+        private orderDetailModel: typeof orderDetail
+    ) {}
     //ajax_order_regist.php 참고
     
     //'regist_cart'로 주문서 등록 & 주문TB저장
-    async registCart() {
+    async registCart(req: Request) {
         try {
         //phpsorce - regist_cart 주문서 등록 
         //$regist_result = regist_cart($uid, $store_id);
@@ -21,13 +34,38 @@ export class PaymentService {
         //if ($regist_result['rst'] == 0) {
             //throw new ServiceUnavailableException(error, 'REGIST_CART_FAIL');
         //} else {
+
+            const date = new Date();
+            const year:string = date.getFullYear().toString();
+            const month:string = ("0" + (date.getMonth() + 1)).slice(-2);
+            const day:string = ("0" + date.getDate()).slice(-2);
             //주문 TB 저장
-        
+            const data = {
+                orderId:'order1010103',
+                userSeq: 0,
+                storeId: 'ST00101010',
+                orderType: 0,//0, //0 픽업, 
+                orderDate: date.getTime(),
+                orderYmd: year + month + day,
+                orderY: year, 
+                orderM: month,
+                orderD: day,
+                orderW: this.getInputDayLabel(),
+                //payType: '',
+                //couponCategory
+                //couponId
+                addr:'' , //$seat_area."|".$seat_name."|".$seat_num;
+                tel: '',
+                uid: '11111111', 
+                user_id: 'temp_Id',
+                user_name: 'name',
+                os_type: this.getUserAgent(req)
+            }
+            const result = await this.orderModel.create(data);
         } catch (error) {
-            logger.error('[payment.registCart]');
-            logger.error(error);
+            common.logger(error, '[payment.registCart]');
             //front - 장바구니 등록에 실패했습니다
-            throw new InternalServerErrorException(error, 'REGIST_CART_FAIL');
+            common.errorException(502, 'REGIST_CART_FAIL', error);
         }
     }
 
@@ -36,16 +74,37 @@ export class PaymentService {
         try {
             let totalPrice = 0;
             let totalCnt = 0;
-            basket.forEach(data => {
+            basket.forEach(async data => {
                 //주문상세 tb insert
+                let date = new Date();
+                let inputData = {
+                    orderId:'',
+                    userSeq: '',
+                    storeId:'',
+                    itemId: '',
+                    itemType: 'O', 
+                    itemName: '',
+                    itemPrice: '',
+                    itemQty: 0,
+                    basketId: '11111',
+                    basketIdDetail: '222', 
+                    regDate: date.getTime()
+                }
+                await this.orderDetailModel.create(inputData);
                 //총금액 & 총갯수 count 
             });
             //주문tb 상품 총가격 & 갯수 update
+            const result = await this.orderModel.update(
+                {totalPrice: 10000,
+                    sumProductQty: 10
+                },
+                {where : {orderId: 'orderIdd'} }
+            );
+
         } catch(error) {
-            logger.error('[payment.orderDetailSave]');
-            logger.error(error);
+            common.logger(error, '[payment.orderDetailSave]');
             //front - 주문서 등록중 오류가 발생했습니다
-            throw new InternalServerErrorException(error, 'REGIST_ORDER_BILL_FAIL');
+            common.errorException(502, 'REGIST_ORDER_BILL_FAIL', error);
         }
     }
 
@@ -54,10 +113,9 @@ export class PaymentService {
         try {
 
         } catch(error) {
-            logger.error('[payment.registOrder]');
-            logger.error(error);
+            common.logger(error, '[payment.registOrder]');
             //front- 주문 등록중 오류가 발생했습니다
-            throw new InternalServerErrorException(error, 'REGIST_ORDER_FAIL');
+            common.errorException(502, 'REGIST_ORDER_FAIL', error);
         }
     }
 
@@ -100,7 +158,9 @@ export class PaymentService {
         } catch(error) { 
             logger.error('[payment.nicepayAuth]');
             logger.error(error);
-            throw new InternalServerErrorException('PAYMENT_FAIL');
+            error.errorCode = 502;
+            error.errorMessage = 'PAYMENT_FAIL';
+            throw new InternalServerErrorException(error);
      }
     }    
     
@@ -146,6 +206,13 @@ export class PaymentService {
         //$sql = "update ks_order set ".
         //"status= status".
         //"where order_id='".$orderId."'";
+        const result = await this.orderModel.update(
+            {
+              status: status,
+            },
+            { where: { orderId: orderId } }
+          );
+        console.log(result);
     }
 
     //망취소
@@ -187,4 +254,26 @@ export class PaymentService {
     async cancelAjax() {
         return {resultCode:'', resultMsg:''}
     }
+
+    getUserAgent(req: Request) {
+        let user_agent = req.header('User-Agent') //userAgent 값 얻기
+        let os_type = "etc";
+        if (user_agent.match('android') != null) { 
+            os_type = "android";
+        } else if (user_agent.indexOf("iphone") > -1 || user_agent.indexOf("ipad") > -1 || user_agent.indexOf("ipod") > -1) { 
+            os_type = "ios";
+        }
+        return os_type;
+    }
+
+
+    getInputDayLabel() {
+        var week = new Array(0,1,2,3,4,5,6);
+        var today = new Date().getDay();
+        var todayLabel = week[today];
+        
+        return todayLabel;
+    }
+    
+    
 }

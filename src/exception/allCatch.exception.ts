@@ -35,14 +35,13 @@ import { ProcessException } from './process.exception';
               let res:any = exception.getResponse();
               resultMessage = `${exception.name} - ${exception.message} :`; 
               //dao validation chk message 
-              if(res.message) {
-                resultMessage += res.message[0];
+               if(res.message) {
+                 resultMessage = res.message[0];
               } 
             } 
 
             //결제 중 오류인경우 front에서 message 그대로 보여줌 
             if(exception instanceof InternalServerErrorException) {
-              logger.error(exception.getStatus);
               resultMessage = exception.message;
             }
 

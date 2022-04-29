@@ -5,6 +5,8 @@ import { sample } from '../entity/sample.entity';
 import { sample2 } from '../entity/sample2.entity';
 import { Sequelize } from 'sequelize';
 import { logger } from 'src/config/winston';
+import axios from 'axios';
+
 @Injectable()
 export class SampleService {
     constructor(
@@ -109,7 +111,7 @@ export class SampleService {
         this.sampleModel.findOne(
           { where: { id: id } }
         ).then(async (sample) => {
-          sample.name = '222';
+          //sample.name = '222';
           result  = await sample.save();
         });
       }
@@ -152,5 +154,29 @@ export class SampleService {
         { where: { id: 1 } }
       ).then(() => { return res.json({"status": 200, "message": "success"}) })
     }
+
+    async ajaxTest() {
+      try { 
+        const url = '';
+        const data = {
+        a: 10,
+        b: 20,
+        };
+        axios
+        .post(url, data, {
+            timeout: 15, 
+            headers: {
+            Accept: "application/json",
+            
+            },
+        })
+        .then(({data}) => {
+           
+        });
+    } catch(error) { 
+        logger.error('[payment.nicepayAuth]');
+        logger.error(error);
+ }
+    } 
 }
 

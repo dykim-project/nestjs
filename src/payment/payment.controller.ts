@@ -1,6 +1,7 @@
-import { Controller, ForbiddenException, InternalServerErrorException, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, ForbiddenException, InternalServerErrorException, Req, Res } from '@nestjs/common';
+import { Response, Request } from 'express';
 import { CartService } from 'src/cart/cart.service';
+import { PaymentDto } from 'src/dto/paymentDto';
 import { Basket } from 'src/entity/basket.entity';
 import { PaymentService } from './payment.service';
 
@@ -9,11 +10,9 @@ export class PaymentController {
     constructor(private readonly paymentService: PaymentService,
                 private readonly cartService: CartService) {}
 
-
     //장바구니에서 결제하기 클릭했을때 결제 process
-    async payment(@Res() res: Response){
+    async payment(@Req() req: Request, @Res() res: Response, @Body() paymentDto: PaymentDto ){
 
-        //ajax_order_regist.php 참고 
         //장바구니 정보 조회
         const basketInfo = await this.cartService.getCartList(111111);
         //1.장바구니 최종 재고 확인
@@ -26,7 +25,7 @@ export class PaymentController {
             throw new InternalServerErrorException('FORBIDDEN_MENU');
         }
         //2. 외부api regist_cart로 주문서 등록 
-        await this.paymentService.registCart();
+        await this.paymentService.registCart(req);
 
         //4.주문상세tb 저장 & 주문tb 총금액 update 
         await this.paymentService.orderDetailSave(basketInfo);

@@ -13,8 +13,8 @@ export class sample extends Model {
     @Column({primaryKey: true})
     id: number;
   
-    @Column
-    name: string;
+    @Column({field: 'name'})
+    name_name2: string;
 
     @Column
     account: number;
