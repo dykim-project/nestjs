@@ -10,6 +10,7 @@ import { order } from 'src/entity/order.entity';
 import { orderDetail } from 'src/entity/orderDetail.entity';
 import { kisServerCon } from '../utils/kis.server.connection';
 import { common } from '../utils/common';
+const config =  require('../config/common.config');
 
 export class AuthResultDto {
 
@@ -169,12 +170,29 @@ export class PaymentService {
 
     
     //nicepay 인증요청 payRequest_utf
-    async nicepayAuth(): Promise<any> {
+    async nicepayAuth(paymentDto: PaymentDto): Promise<any> {
+//         $merchantKey = MERCHANT_KEY; // 상점키
+// $orderId	 = $_POST["orderId"]; // 주문ID
+// $MID         = MID; // 상점아이디
+// $goodsName   = $_POST["goodName"]; // 결제상품명
+// $price       = $_POST["price"]; // 결제상품금액
+// $buyerName   = $_POST["userName"]; // 구매자명 
+// $buyerTel	 = $_POST["phone"]; // 구매자연락처
+// $buyerEmail  = $_POST["email"]; // 구매자메일주소        
+// $moid        = $_POST["Moid"]; // 상품주문번호                     
+// $storeId     = $_POST["storeId"]; // 상품주문번호                     
+// $returnURL	 = "https://hworder.smarteaglespark.com/webui/nicepay/payResult_utf.php"; // 결과페이지(절대경로) - 모바일 결제창 전용
+// var goodName = mainMenuName + " " + mainMenuCount + "개";
+// if (goodsCount > 1) {
+//     goodName = goodName + " 외 " + goodsCount + " 품목"
+// }       
+
         try { 
             const url = '';
             const data = {
-            a: 10,
-            b: 20,
+                orderId: paymentDto.orderId,
+                MID: config.MID, //define("MID", "ddfactor1m");
+                goodsName: ''
             };
             axios
             .post(url, data, {
