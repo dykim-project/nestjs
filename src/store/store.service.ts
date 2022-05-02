@@ -16,12 +16,11 @@ export class StoreService {
     //매장 목록
     //return storeEntity list
     async getStoreList(): Promise<any> {
-        const data = {};
-        let result = await kisServerCon('/api/channel/nonpage/store/select', data);
+        let result = await kisServerCon('/api/channel/nonpage/store/select');
         if(result.data.success) {
             result = result.data.data;
         } else {
-            common.logger(result.data, '[payment.getStoreList]');
+            common.logger(result?.data, '[payment.getStoreList]');
             common.errorException(502, 'GET_STORE_LIST_FAIL', result.data);
         }
         return result;

@@ -1,15 +1,15 @@
 import axios from 'axios';
 import { logger } from 'src/config/winston';
-export const kisServerCon = async (url:string, data: any):Promise<any> => {
+export const kisServerCon = async (url:string, data?: any):Promise<any> => {
     try {
         const server = 'https://orderapi.kisvan.co.kr';
         data = {
-            chnlId: 'CH00000334',
+            chnlId: 'CH00002034',
             ...data
         };
         let requestUrl = server + url; 
-        logger.log(requestUrl);
-        logger.log(data);
+        logger.info(requestUrl);
+        console.log(data);
         const result = await axios
         .post(requestUrl, {
             data:JSON.stringify(data),
@@ -23,7 +23,8 @@ export const kisServerCon = async (url:string, data: any):Promise<any> => {
         });
         return result;
     } catch (error) {
-        logger.error(`[KIS SERVER ERROR] ${error.response.data.errorMsg}`);
+        //console.log(error);
+        logger.error(`[KIS SERVER ERROR] ${error.response?.data?.errorMsg}`);
         return error.response;
     } 
     //.then(({data}) => {

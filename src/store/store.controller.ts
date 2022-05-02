@@ -6,7 +6,7 @@ import { ProductService } from './product.service';
 import { StoreService } from './store.service';
 
 @Controller()
-export class SmartorderController {
+export class StoreController {
     constructor(private readonly storeService: StoreService,
                 private readonly productService: ProductService,
                 private readonly cartService: CartService,

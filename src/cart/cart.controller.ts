@@ -4,8 +4,8 @@ import { logger } from 'src/config/winston';
 import { AddCartDto } from 'src/dto/addCartDto';
 import { CartDto } from 'src/dto/cartDto';
 import { ProductDto } from 'src/dto/productDto';
-import { ProductService } from 'src/smartorder/product.service';
-import { StoreService } from 'src/smartorder/store.service';
+import { ProductService } from 'src/store/product.service';
+import { StoreService } from 'src/store/store.service';
 import { CartService } from './cart.service';
 
 @Controller('cart')

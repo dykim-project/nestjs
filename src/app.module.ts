@@ -5,7 +5,7 @@ import { RawbodyMiddleware } from './middleware/rawbody.middleware';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { SampleModule } from './sample/sample.module';
 import { APP_FILTER } from '@nestjs/core';
-import { SmartorderModule } from './smartorder/smartorder.module';
+import { StoreModule } from './store/store.module';
 import { PaymentModule } from './payment/payment.module';
 import { CartModule } from './cart/cart.module';
 const devConfig = require('./config/db.dev.config');
@@ -18,7 +18,7 @@ const dbConfig = process.env.NODE_ENV == 'dev' ? prodConfig : devConfig;
     }
   ), 
   SampleModule,
-  SmartorderModule,
+  StoreModule,
   PaymentModule,
   CartModule,],
   controllers: [AppController],

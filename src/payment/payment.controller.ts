@@ -33,8 +33,9 @@ export class PaymentController {
         await this.paymentService.registOrder(paymentDto);
         
         //---nice pay결제---------------------- 
+        //payment(rtn.order_id, rtn.store_id, rtn.pay_price, rtn.order_id);
         //6.결제 인증요청(nicepayment 인증요청)  payRequest_utf.php 참고
-        const nicepayAuthResult = await this.paymentService.nicepayAuth();
+        const nicepayAuthResult = await this.paymentService.nicepayAuth(paymentDto);
         //7.결제 승인요청(nicepayment 인증요청)
         await this.paymentService.nicepayApproval(nicepayAuthResult);
         

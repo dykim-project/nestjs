@@ -7,12 +7,12 @@ import { userInfo } from 'src/entity/userInfo.entity';
 import { PaymentService } from 'src/payment/payment.service';
 import { OrderHistoryService } from './orderhistory.service';
 import { ProductService } from './product.service';
-import { SmartorderController } from './smartorder.controller';
+import { StoreController } from './store.controller';
 import { StoreService } from './store.service';
 
 @Module({
   imports: [SequelizeModule.forFeature([order, orderDetail, userInfo])],
-  controllers: [SmartorderController],
+  controllers: [StoreController],
   providers: [StoreService, ProductService, PaymentService, CartService, OrderHistoryService],
 })
-export class SmartorderModule {}
+export class StoreModule {}
