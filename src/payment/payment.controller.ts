@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, InternalServerErrorException, Req, Res } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, InternalServerErrorException, Post, Req, Res } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { CartService } from 'src/cart/cart.service';
 import { PaymentDto } from 'src/dto/paymentDto';
@@ -12,6 +12,7 @@ export class PaymentController {
                 private readonly cartService: CartService) {}
 
     //장바구니에서 결제하기 클릭했을때 결제 process
+    @Post()
     async payment(@Req() req: Request, @Res() res: Response, @Body() paymentDto: PaymentDto ){
 
         //장바구니 정보 조회
@@ -25,7 +26,6 @@ export class PaymentController {
         }); 
         //2. 외부api regist_cart로 주문서 등록 
         let resultDto = await this.paymentService.registCart(paymentDto);
-
         //4.주문상세tb 저장 & 주문tb 총금액 update 
         resultDto = await this.paymentService.orderDetailSave(basketInfo, paymentDto);
 
@@ -35,15 +35,15 @@ export class PaymentController {
         //---nice pay결제---------------------- 
         //payment(rtn.order_id, rtn.store_id, rtn.pay_price, rtn.order_id);
         //6.결제 인증요청(nicepayment 인증요청)  payRequest_utf.php 참고
-        const nicepayAuthResult = await this.paymentService.nicepayAuth(paymentDto);
+       // const nicepayAuthResult = await this.paymentService.nicepayAuth(paymentDto);
         //7.결제 승인요청(nicepayment 인증요청)
-        await this.paymentService.nicepayApproval(nicepayAuthResult);
+        //await this.paymentService.nicepayApproval(nicepayAuthResult);
         
         //8.결제정보 주문db update
-        await this.paymentService.orderDataUpdate(nicepayAuthResult);
+        //await this.paymentService.orderDataUpdate(nicepayAuthResult);
         
         //9. payment_order_with_pg <-스마트 오더 진행..?
         //payResult_utf.php 참고
-        await this.paymentService.orderWithPg(nicepayAuthResult);
+        //await this.paymentService.orderWithPg(nicepayAuthResult);
     }
 }

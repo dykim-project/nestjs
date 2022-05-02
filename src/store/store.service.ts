@@ -51,13 +51,19 @@ export class StoreService {
         try {
             //매장상세 정보 get 
             const date = new Date();
-            const storeData = storeDetail ? storeDetail : this.getStoreDetail(storeId);
+            console.log(storeDetail);
+            if(!storeDetail) {
+                storeDetail = await this.getStoreDetail(storeId);
+            }
+            const storeData = storeDetail;
+            console.log(storeData);
             //매장 상세 정보로 운영시간 계산
             const runTimeList = storeData.strOphVos;
             const today = common.getInputDayLabel() + 1; //월요일 2부터 
             const hour = ("0" + date.getHours()).slice(-2);
             const minute = ("0" + date.getMinutes()).slice(-2);
             const time = hour + minute;
+            console.log(runTimeList);
             runTimeList.forEach(data =>{
                 //요일 비교
                 if(data.dayCd == today) {
@@ -69,7 +75,7 @@ export class StoreService {
             })
             return result;
         } catch(error) {
-
+            common.logger(error,'[store.getStoreOpenChk]');
         }
     }
 

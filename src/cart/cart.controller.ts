@@ -25,12 +25,12 @@ export class CartController {
  
          //매장 운영 확인
          const storeOpenChk = await this.storeService.getStoreOpenChk(cartDto.storeId);
- 
          //장바구니 정보
          const cartList = await this.cartService.getCartList(cartDto.uid);
-         res.json({cartList,
-                   storeOpenChk,
-                   statusCode: 200});
+         const body = {cartList,
+                        storeOpenChk:storeOpenChk,
+                        statusCode: 200};
+         res.json(body);
         } catch(error) {
             logger.log('[cart.cartList]');
             logger.log(error);

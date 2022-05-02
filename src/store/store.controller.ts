@@ -41,7 +41,9 @@ export class StoreController {
         //상품 목록
         //get_item_list //외부 api 사용
         const productList = await this.productService.getProductList(storeId);
-        //매장 운영 정보(개발전)
+        console.log(storeDetail);
+        console.log('--------controller');
+        //매장 운영 정보
        const storeOpenChk = await this.storeService.getStoreOpenChk(storeId, storeDetail);
          let body = {
              cartCnt,
@@ -61,7 +63,7 @@ export class StoreController {
         //매장 운영 확인
         const storeOpenChk = await this.storeService.getStoreOpenChk(storeId);
         
-        //아이템 상세정보 조회 test 필요
+        //아이템 상세정보 조회
         const productDetail = await this.productService.getProductDetail(storeId, itemId);                           
         let body = {
             storeOpenChk,

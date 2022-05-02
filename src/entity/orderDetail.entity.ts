@@ -4,6 +4,7 @@ import { order } from './order.entity';
 @Table({
     tableName: 'ks_order_detail',
     updatedAt: false ,
+    createdAt: false,
     timestamps: true, 
   }) 
   //({ createdAt: false, updatedAt: false }
@@ -37,10 +38,10 @@ export class orderDetail extends Model {
     @Column({field: 'item_qty'})
     itemQty: number;
 
-    @Column({field:'reward_point', type: DataType.FLOAT}) 
+    @Column({field:'reward_point', type: DataType.FLOAT , defaultValue:0}) 
     rewardPoint: number;
 
-    @Column({field: 'reward_stamp'})
+    @Column({field: 'reward_stamp', defaultValue:0})
     rewardStamp: number;
 
     @Column({field: 'basket_id'})

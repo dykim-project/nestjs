@@ -42,7 +42,6 @@ export class PaymentService {
                 common.logger(result.data, '[payment.registCart kis-server]');
                 common.errorException(502, 'REGIST_CART_FAIL', result.data);
             }
-
             const date = new Date();
             const year:string = date.getFullYear().toString();
             const month:string = ("0" + (date.getMonth() + 1)).slice(-2);
@@ -103,6 +102,7 @@ export class PaymentService {
                     itemPrice = data.optPrc;
                 }
                 //----------------------------------------------------
+             
                 //주문상세 tb insert
                 let date = new Date();
                 let inputData = {

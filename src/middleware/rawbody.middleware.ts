@@ -7,7 +7,9 @@ export class RawbodyMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     try {
       logger.warn(`rawbody ${process.env.NODE_ENV}`);
-      req.body = JSON.parse(req.body);
+      if( req.method !== 'GET') {
+        req.body = JSON.parse(req.body);
+      }
     } catch(error) {
        logger.warn('[middleware] parsing error');
       throw new BadRequestException();
