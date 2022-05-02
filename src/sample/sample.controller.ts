@@ -8,10 +8,12 @@ import { ProductDto } from 'src/dto/productDto';
 import { PaymentService } from 'src/payment/payment.service';
 import { InjectModel } from '@nestjs/sequelize';
 import { userInfo } from 'src/entity/userInfo.entity';
+import { CartService } from 'src/cart/cart.service';
 @Controller('sample')
 export class SampleController {
     constructor(private readonly usersService: SampleService,
       private readonly paymentService: PaymentService,
+      private readonly cartService: CartService,
       @InjectModel(userInfo)
       private userInfoModel: typeof userInfo
       ) {}
@@ -19,6 +21,8 @@ export class SampleController {
     @Get()
     async findAll(@Req() req: Request): Promise<sample[]> {
       //await this.paymentService.registCart(req);
+      //1.장바구니 정보 가져와서 같은 가게가 아니면 장바구니 삭제 
+      //const cartList = await this.cartService.getCartList(uid);
       return this.usersService.findAll();
     }
 

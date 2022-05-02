@@ -8,6 +8,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { StoreModule } from './store/store.module';
 import { PaymentModule } from './payment/payment.module';
 import { CartModule } from './cart/cart.module';
+import { OrderhistoryModule } from './orderhistory/orderhistory.module';
 const devConfig = require('./config/db.dev.config');
 const prodConfig = require('./config/db.prod.config');
 const dbConfig = process.env.NODE_ENV == 'dev' ? prodConfig : devConfig;
@@ -20,7 +21,8 @@ const dbConfig = process.env.NODE_ENV == 'dev' ? prodConfig : devConfig;
   SampleModule,
   StoreModule,
   PaymentModule,
-  CartModule,],
+  CartModule,
+  OrderhistoryModule,],
   controllers: [AppController],
   providers: [AppService, {
       provide: APP_FILTER,

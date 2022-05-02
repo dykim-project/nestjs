@@ -1,11 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { InjectConnection } from "@nestjs/sequelize";
-import { Sequelize } from 'sequelize';
 import { kisServerCon } from '../utils/kis.server.connection';
 import { common } from '../utils/common';
 
 @Injectable()
-export class OrderHistoryService {
+export class OrderhistoryService {
     constructor(
     ) {}
 

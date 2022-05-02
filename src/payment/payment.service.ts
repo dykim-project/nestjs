@@ -58,7 +58,7 @@ export class PaymentService {
                 orderY: year, 
                 orderM: month,
                 orderD: day,
-                orderW: this.getInputDayLabel(),
+                orderW: common.getInputDayLabel(),
                 //payType: '',
                 //couponCategory
                 //couponId
@@ -332,15 +332,6 @@ export class PaymentService {
         return os_type;
     }
 
-
-    getInputDayLabel() {
-        var week = new Array(0,1,2,3,4,5,6);
-        var today = new Date().getDay();
-        var todayLabel = week[today];
-        
-        return todayLabel;
-    }
-    
     
 }
 

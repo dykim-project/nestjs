@@ -10,5 +10,13 @@ export const common = {
     logger (error, methodName) {
         logger.error(methodName);
         logger.error(error);
+    },
+    getInputDayLabel() {
+        var week = new Array(0,1,2,3,4,5,6);
+        var today = new Date().getDay();
+        var todayLabel = week[today];
+        
+        return todayLabel;
     }
+    
 }

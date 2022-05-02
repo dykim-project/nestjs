@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { logger } from 'src/config/winston';
 import { AddCartDto } from 'src/dto/addCartDto';
 import { CartDto } from 'src/dto/cartDto';
+import { DeleteCartDto } from 'src/dto/deleteCartDto';
 import { ProductDto } from 'src/dto/productDto';
 import { ProductService } from 'src/store/product.service';
 import { StoreService } from 'src/store/store.service';
@@ -49,7 +50,7 @@ export class CartController {
          }
  
          //아이템 품절 확인 
-         const productStockChk = await this.productService.getProductStockChk(addCartDto.itemId); 
+         const productStockChk = await this.productService.getProductStockChk(addCartDto.storeId, addCartDto.itemId); 
          if(productStockChk) {
              //장바구니 상품 수량변경
              const result = await this.cartService.addCart(addCartDto);
@@ -62,10 +63,10 @@ export class CartController {
      }
  
      //장바구니 삭제 ajax_delete_cart.php
-     @Get('delete')
-     async deleteCart(@Res() res:Response, @Query('uid') uid: number, @Query('itemId') itemId: string) {
+     @Post('delete')
+     async deleteCart(@Res() res:Response, @Body() deleteCartDto: DeleteCartDto) {
          //삭제
-         await this.cartService.deleteOneCart(uid, itemId);
+         await this.cartService.deleteOneCart(deleteCartDto.uid, deleteCartDto.basketDetailId);
          res.json({statusCode:200});
      }
 }
