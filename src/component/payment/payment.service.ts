@@ -2,10 +2,8 @@ import { BadRequestException, Injectable, InternalServerErrorException, ServiceU
 import { InjectModel } from '@nestjs/sequelize';
 import axios from 'axios';
 import { Request } from 'express';
-import { throwError, timestamp } from 'rxjs';
 import { logger } from 'src/config/winston';
 import { PaymentDto } from 'src/dto/paymentDto';
-import { Basket } from 'src/entity/basket.entity';
 import { order } from 'src/entity/order.entity';
 import { orderDetail } from 'src/entity/orderDetail.entity';
 import { kisServerCon } from '../../utils/kis.server.connection';
@@ -48,9 +46,9 @@ export class PaymentService {
             const day:string = ("0" + date.getDate()).slice(-2);
             //주문 TB 저장
             const saveData = {
-                orderId: result.ordrId,//'order1010103',//서버에서 생성함 
+                orderId: result.ordrId,//서버에서 생성함 
                 userSeq: 0,
-                storeId: paymentDto.storeId,//'ST00101010',
+                storeId: paymentDto.storeId,
                 orderType: 0,//0, //0 픽업, 
                 orderDate: date.getTime(),
                 orderYmd: year + month + day,
@@ -84,7 +82,6 @@ export class PaymentService {
             let totalPrice = 0;
             let totalCnt = 0;
             basket.forEach(async data => {
-                //------------------------------------------------
                 let itemId = "";
                 let itemName = "";
                 let itemQty = 0;
@@ -155,7 +152,7 @@ export class PaymentService {
                         prePayCd: 'P',
                         postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
                         ordrCnct: paymentDto.userTel,
-                        ordrDesc: (paymentDto.customerReq).substring(0, 100),
+                        ordrDesc: (paymentDto.customerReq)?.substring(0, 100),
                         discPrc: 0 
                     };
         let result = await kisServerCon('/api/channel/nonpage/order/insert', data);

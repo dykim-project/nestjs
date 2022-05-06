@@ -41,6 +41,7 @@ export class CartService {
             return true;
         } catch(error) {
             //front - 상품 담기 중 에러가 발생했습니다.\n에러가 지속되면 관리자에게 문의해주세요
+            logger.error('addcart catch error---');
             logger.error(error);
             throw new InternalServerErrorException('ADDCART_FAIL');
         }

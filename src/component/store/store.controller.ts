@@ -22,7 +22,6 @@ export class StoreController {
     async getStoreDetail(@Res() res: Response,
                         @Query('uid') uid: number,
                         @Query('storeId') storeId: string): Promise<any> {
-
         //1.장바구니 정보 가져와서 같은 가게가 아니면 장바구니 삭제 
         const cartList = await this.cartService.getCartList(uid);
         //장바구니에 담긴 상품이 현재 매장 상품이 아닌경우 - 장바구니 전체 삭제 

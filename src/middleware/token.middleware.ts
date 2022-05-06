@@ -2,10 +2,11 @@ import { BadRequestException, Injectable, NestMiddleware } from '@nestjs/common'
 import axios from 'axios';
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../config/winston';
+import jwt_decode from "jwt-decode";
 const jwt = require('jsonwebtoken');
 axios.defaults.baseURL = `${process.env.REACT_APP_TICKET_API_URL}`;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
-let jwtObj = {secret: process.env.JWT_SECRET};
+let jwtObj = {secret: 'MFVGv2c2iT4yoT!zW9!wksoD'};
 
 
 //front의 쿠키에서 token, refreshToken 
@@ -17,36 +18,33 @@ export class TokenMiddleware implements NestMiddleware {
       res.set({'Access-Control-Allow-Credentials' : 'true'});
       res.set({'ccess-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS'})
       res.set({'Access-Control-Allow-Headers' : 'X-PINGOTHER, Content-Type'})
-
       //token, refreshToken
-      let {token, uid} = req.cookies;
-      uid = 1112;
-      console.log(req.cookies);
-      console.log('get' + uid);
-      let param = {uid: uid,
-                  userName:'temp'};
+      let {token, refreshToken} = req.cookies;
+      let param = {};
+       //jwt 유효성 체크 
+       jwt.verify(token, `${jwtObj.secret}`, function(err, decoded) {
+         if(err) {
+          return res.json({statusCode:401, message:'token'});
+         } else {
+           console.log(decoded);
+         let { idx, 
+              username, //id
+              name} = decoded;
+          param = {uid: idx,
+                  userName: username}
+          }
+       });
+      //토근으로 uid 셋팅 
       if (req.method === 'GET') {
-        console.log('get::::::::::');
         req.query = {...req.query, ...param};
       } else if (req.method === 'POST') {
-        console.log('post::::::::::::::');
         req.body = {...req.body, ...param};
-        console.log(req.body);
       }
-      console.log('token====================');
-      console.log(param);
-      //jwt 유효성 체크 
-      //console.log(process.env.JWT_SECRET);
-      //let decoded = jwt.verify(token, `${jwtObj.secret}`);
-      //토큰값
       
-        //decrypt
     } catch(error) {
       logger.warn(error);
       logger.warn('[Token middleware] parsing error');
       return res.json({statusCode:401, message:'token'});
-      //res.. 
-       //throw new BadRequestException();
     }
       next();
   }

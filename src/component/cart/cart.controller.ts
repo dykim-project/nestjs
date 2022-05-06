@@ -42,7 +42,7 @@ export class CartController {
                         sumProductQty,
                         sumProductPrice,
                         statusCode: 200};
-         res.jsonp(body);
+        return res.json(body);
         } catch(error) {
             logger.log('[cart.cartList]');
             logger.log(error);
@@ -57,7 +57,7 @@ export class CartController {
              const storeOpenChk = await this.storeService.getStoreOpenChk(addCartDto.storeId);
              if(!storeOpenChk) {
                  //front - 지금은 주문하실 수 없습니다.
-                 res.json({statusCode: 200, resultMsg: 'NOT_OPEN'});
+                 return res.json({statusCode: 200, resultMsg: 'NOT_OPEN'});
              }
          }
  
@@ -67,10 +67,10 @@ export class CartController {
              //장바구니 상품 수량변경
              const result = await this.cartService.addCart(addCartDto);
              if(result) {
-                 res.json({statusCode: 200});
+                return res.json({statusCode: 200});
              }
          } else {
-             res.json({statusCode: 200, resultMsg: 'SOLDOUT'});
+            return res.json({statusCode: 200, resultMsg: 'SOLDOUT'});
          }
      }
  
@@ -79,6 +79,6 @@ export class CartController {
      async deleteCart(@Res() res:Response,  @Query('uid') uid: number, @Query('basketDetailId') baskDtlId: string) {
          //삭제
          await this.cartService.deleteOneCart(uid, baskDtlId);
-         res.json({statusCode:200});
+         return res.json({statusCode:200});
      }
 }

@@ -21,8 +21,8 @@ export class PaymentController {
         const storeOpenChk = await this.storeService.getStoreOpenChk(paymentDto.storeId);
         if(!storeOpenChk) {
             return res.json({ststusCode:200, resultMsg: 'NOT_OPEN'});
-
         }
+
         //장바구니 정보 조회
         const basketInfo = await this.cartService.getCartList(paymentDto.uid);
         //1.장바구니 최종 재고 확인
