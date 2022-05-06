@@ -5,8 +5,8 @@ import { logger } from "src/config/winston";
 import { CartDto } from "src/dto/cartDto";
 import { Basket } from "src/entity/basket.entity";
 import { userInfo } from "src/entity/userInfo.entity";
-import { kisServerCon } from '../utils/kis.server.connection';
-import { common } from '../utils/common';
+import { kisServerCon } from '../../utils/kis.server.connection';
+import { common } from '../../utils/common';
 import { AddCartDto } from "src/dto/addCartDto";
 import { isNotEmpty } from "class-validator";
 
@@ -20,50 +20,16 @@ export class CartService {
     //return 갯수, 총금액
     async addCart(addCartDto: AddCartDto): Promise<any> {
         try{
-            //장바구니에 같은 상품제거 후 등록 
-            const cartList = await this.getCartList(addCartDto.uid);
-            let totalCnt = 0;
-            cartList.forEach(data => {
-                if(data.upPrdId === addCartDto.itemId) {
-                    //삭제 후 갯수 가져오기 
-                    this.deleteOneCart(addCartDto.uid, data.baskDtlId);
-                    totalCnt = parseInt(data.ordrCnt);
-                }
-            })
             //phpsource 외부 api - insert_cart_option 
             let data = {brdId:'', 
                         strId: addCartDto.storeId,
                         prdId: addCartDto.itemId,
                         chnlMbrId: addCartDto.uid,
-                        totalCnt: totalCnt+=addCartDto.itemQty};
-
+                        totalCnt: addCartDto.itemQty
+                        }; 
             //-------------------------------------
-                // 메인상품 입력
-
-            // 옵션상품 입력
-            /*$param_option_id = array();
-            $option_select_type = explode("::", $option_select_type);
-            $option_item_id = explode("::", $option_item_id);
-            $option_item_qty = explode("::", $option_item_qty);
-            for ($i = 0; $i < count($option_select_type); $i++) {
-                if ($option_item_id[$i] != "") {
-                    if ($option_select_type == "SS") {
-
-                        $param_option_id[] = $option_item_id[$i];
-
-                    } else {
-                        $option_item_id_multi = explode("||", $option_item_id[$i]);
-                        $option_item_qty_multi = explode("||", $option_item_qty[$i]);
-                        for ($j = 0; $j < count($option_item_id_multi); $j++) {
-
-                            $param_option_id[] = $option_item_id_multi[$j];
-
-                        }
-                    }
-                }
-            }*/
-            data = {...data, ...{optPrdIds:''}} //param_option_id
-            
+            let optPrdIds = addCartDto.optionIds  && addCartDto.optionIds.length > 0 ? addCartDto.optionIds : [];
+            data = {...data, ...{optPrdIds:optPrdIds}} //param_option_id
             //-------------------------------------
             let result = await kisServerCon('/api/channel/nonpage/bask/insert', data);
             if(result.data.success) {
@@ -75,6 +41,7 @@ export class CartService {
             return true;
         } catch(error) {
             //front - 상품 담기 중 에러가 발생했습니다.\n에러가 지속되면 관리자에게 문의해주세요
+            logger.error(error);
             throw new InternalServerErrorException('ADDCART_FAIL');
         }
     } 
@@ -93,25 +60,28 @@ export class CartService {
         return result;
     }
 
-    //장바구니 상단 갯수 표기
+    //총갯수 금액 
     getCartTotalCnt(basketList: any) {
         let sumProductQty = 0;
         let sumProductPrice = 0;
+        let itemCnt = 0;
         basketList.forEach(data => {
             let itemType = data.prdOptCd;
             if(itemType === "S") { //메인 아이템인 경우
                 let itemQty = parseInt(data.ordrCnt);
                 let itemPrice = data.salePrc;
                 sumProductQty += itemQty;
-                sumProductPrice += (itemQty * itemPrice);                
+                sumProductPrice += (itemQty * itemPrice);    
+                itemCnt+=1;            
             } else { //옵션 아이템인 경우
                 let itemQty = data.ordrCnt;
-                let itemPrice = data.salePrc;
+                let itemPrice = data.optPrc;
                 sumProductPrice += (itemQty * itemPrice);
             }
         });
-        return {sumProductQty, sumProductPrice};
+        return {sumProductQty, sumProductPrice, itemCnt};
     }
+
 
 
     
@@ -144,6 +114,7 @@ export class CartService {
     //장바구니 item 삭제 
     async deleteOneCart(uid:number, basketDetailId?: string) {
         const data = {chnlMbrId: uid, baskDtlId: basketDetailId};
+        console.log(data);
         let result = await kisServerCon('/api/channel/nonpage/bask/delete', data);
         if(result.data.success) {
             result = result.data.data;

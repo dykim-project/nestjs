@@ -1,27 +1,35 @@
 import { Body, Controller, ForbiddenException, InternalServerErrorException, Post, Req, Res } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { CartService } from 'src/cart/cart.service';
+import { CartService } from 'src/component/cart/cart.service';
 import { PaymentDto } from 'src/dto/paymentDto';
 import { Basket } from 'src/entity/basket.entity';
 import { PaymentService } from './payment.service';
-import { common } from '../utils/common';
+import { common } from '../../utils/common';
+import { StoreService } from 'src/component/store/store.service';
 
 @Controller('payment')
 export class PaymentController {
     constructor(private readonly paymentService: PaymentService,
-                private readonly cartService: CartService) {}
+                private readonly cartService: CartService,
+                private readonly storeService: StoreService) {}
 
     //장바구니에서 결제하기 클릭했을때 결제 process
     @Post()
     async payment(@Req() req: Request, @Res() res: Response, @Body() paymentDto: PaymentDto ){
+        //최종 open 확인 
 
+        const storeOpenChk = await this.storeService.getStoreOpenChk(paymentDto.storeId);
+        if(!storeOpenChk) {
+            return res.json({ststusCode:200, resultMsg: 'NOT_OPEN'});
+
+        }
         //장바구니 정보 조회
         const basketInfo = await this.cartService.getCartList(paymentDto.uid);
         //1.장바구니 최종 재고 확인
         await basketInfo.every(async data => {
             let itemStatusCode = data.prdSaleCdStk;
             if(itemStatusCode != 'OS') {
-                res.json({ststusCode:204, resultMsg: 'FORBIDDEN_MENU'})
+                return res.json({ststusCode:200, resultMsg: 'FORBIDDEN_MENU'})
             }
         }); 
         //2. 외부api regist_cart로 주문서 등록 

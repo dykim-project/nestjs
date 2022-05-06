@@ -6,7 +6,7 @@ import { logger } from '../config/winston';
 export class RawbodyMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     try {
-      logger.warn(`rawbody ${process.env.NODE_ENV}`);
+      logger.info(`rawbody ${process.env.NODE_ENV}`);
       if( req.method !== 'GET') {
         req.body = JSON.parse(req.body);
       }

@@ -8,9 +8,9 @@ import { PaymentDto } from 'src/dto/paymentDto';
 import { Basket } from 'src/entity/basket.entity';
 import { order } from 'src/entity/order.entity';
 import { orderDetail } from 'src/entity/orderDetail.entity';
-import { kisServerCon } from '../utils/kis.server.connection';
-import { common } from '../utils/common';
-const config =  require('../config/common.config');
+import { kisServerCon } from '../../utils/kis.server.connection';
+import { common } from '../../utils/common';
+const config =  require('../../config/common.config');
 
 export class AuthResultDto {
 

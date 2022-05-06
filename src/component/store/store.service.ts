@@ -3,8 +3,8 @@ import { InjectConnection } from "@nestjs/sequelize";
 import { CommonDto } from "src/dto/commonDto";
 import { Sequelize } from 'sequelize';
 import { Store } from "src/entity/store.entity";
-import { kisServerCon } from '../utils/kis.server.connection';
-import { common } from '../utils/common';
+import { kisServerCon } from '../../utils/kis.server.connection';
+import { common } from '../../utils/common';
 
 @Injectable()
 export class StoreService {
@@ -47,23 +47,19 @@ export class StoreService {
     //return true(운영) /false (운영안함)
     async getStoreOpenChk(storeId: string, storeDetail?: any): Promise<boolean> {
         let result = false;
-        
         try {
             //매장상세 정보 get 
             const date = new Date();
-            console.log(storeDetail);
             if(!storeDetail) {
                 storeDetail = await this.getStoreDetail(storeId);
             }
             const storeData = storeDetail;
-            console.log(storeData);
             //매장 상세 정보로 운영시간 계산
             const runTimeList = storeData.strOphVos;
             const today = common.getInputDayLabel() + 1; //월요일 2부터 
             const hour = ("0" + date.getHours()).slice(-2);
             const minute = ("0" + date.getMinutes()).slice(-2);
             const time = hour + minute;
-            console.log(runTimeList);
             runTimeList.forEach(data =>{
                 //요일 비교
                 if(data.dayCd == today) {

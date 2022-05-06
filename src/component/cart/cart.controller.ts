@@ -1,12 +1,12 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, Post, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { logger } from 'src/config/winston';
 import { AddCartDto } from 'src/dto/addCartDto';
 import { CartDto } from 'src/dto/cartDto';
 import { DeleteCartDto } from 'src/dto/deleteCartDto';
 import { ProductDto } from 'src/dto/productDto';
-import { ProductService } from 'src/store/product.service';
-import { StoreService } from 'src/store/store.service';
+import { ProductService } from 'src/component/store/product.service';
+import { StoreService } from 'src/component/store/store.service';
 import { CartService } from './cart.service';
 
 @Controller('cart')
@@ -16,21 +16,33 @@ export class CartController {
                 private readonly productService: ProductService,) {}
      
      //장바구니 조회 cart.php
-     @Post('list')
-     async cartList(@Res() res:Response, @Body() cartDto: CartDto) {
+     @Get('list')
+     async cartList(@Res() res:Response, 
+                    @Query('uid') uid: number,
+                    @Query('storeId') storeId: string,
+                    @Query('userName') userName: string) {
         try {
          //장바구니 화면으로 진입했을때-> 사용자 정보 저장
          //uid, user_name, push_toke
+         let cartDto:CartDto = {uid: uid,
+                        storeId: storeId,
+                        userName: userName? userName: '',
+                        pushToken:''};
          await this.cartService.saveUserInfo(cartDto);
  
+         const storeDetail = await this.storeService.getStoreDetail(cartDto.storeId);
          //매장 운영 확인
-         const storeOpenChk = await this.storeService.getStoreOpenChk(cartDto.storeId);
+         const storeOpenChk = await this.storeService.getStoreOpenChk(cartDto.storeId ,storeDetail);
          //장바구니 정보
          const cartList = await this.cartService.getCartList(cartDto.uid);
+         const {sumProductQty, sumProductPrice} = await this.cartService.getCartTotalCnt(cartList);
          const body = {cartList,
-                        storeOpenChk:storeOpenChk,
+                        storeOpenChk,
+                        storeDetail,
+                        sumProductQty,
+                        sumProductPrice,
                         statusCode: 200};
-         res.json(body);
+         res.jsonp(body);
         } catch(error) {
             logger.log('[cart.cartList]');
             logger.log(error);
@@ -45,7 +57,7 @@ export class CartController {
              const storeOpenChk = await this.storeService.getStoreOpenChk(addCartDto.storeId);
              if(!storeOpenChk) {
                  //front - 지금은 주문하실 수 없습니다.
-                 res.json({statusCode: 204, resultMsg: 'NOT_OPEN'});
+                 res.json({statusCode: 200, resultMsg: 'NOT_OPEN'});
              }
          }
  
@@ -58,15 +70,15 @@ export class CartController {
                  res.json({statusCode: 200});
              }
          } else {
-             res.json({statusCode: 204, resultMsg: 'SOLDOUT'});
+             res.json({statusCode: 200, resultMsg: 'SOLDOUT'});
          }
      }
  
      //장바구니 삭제 ajax_delete_cart.php
-     @Post('delete')
-     async deleteCart(@Res() res:Response, @Body() deleteCartDto: DeleteCartDto) {
+     @Get('delete')
+     async deleteCart(@Res() res:Response,  @Query('uid') uid: number, @Query('basketDetailId') baskDtlId: string) {
          //삭제
-         await this.cartService.deleteOneCart(deleteCartDto.uid, deleteCartDto.basketDetailId);
+         await this.cartService.deleteOneCart(uid, baskDtlId);
          res.json({statusCode:200});
      }
 }

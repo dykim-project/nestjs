@@ -1,19 +1,28 @@
 import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
+import { StoreService } from '../store/store.service';
 import { OrderhistoryService } from './orderhistory.service';
 
-@Controller('orderhistory')
+@Controller('order')
 export class OrderhistoryController {
     constructor(private readonly orderHistoryService: OrderhistoryService,
+        private readonly storeService: StoreService
         ) {}
         //주문 목록 order_history.php
-        @Get('order/history')
-        async orderList(@Query('uid', ParseIntPipe) uid: number) { 
+        @Get('history')
+        async orderList(@Query('uid') uid: number) { 
             //주문목록 조회 
-            //get_order_list 외부 api
-            await this.orderHistoryService.getOrderList(uid);
-            //주문 상태 조회 
-            //$sql = "select * from ks_order where order_id='$order_id'";
+            let ordrList = await this.orderHistoryService.getOrderList(uid);
+            // 주문번호를 통해 디비에서 store_id 취득
+            ordrList.map(async data => {
+                let storeId = await this.orderHistoryService.getOrderStore(data.strId);
+                //가게 상세정보 조회하기 
+                let storeDetail = await this.storeService.getStoreDetail(storeId);
+                //목록에 가게정보 추가
+                ordrList.storeDetail = storeDetail;
+            })
+            let body = {ordrList}
         }
+
     
         //주문상세 order_detail.php
         async orderDetail() {

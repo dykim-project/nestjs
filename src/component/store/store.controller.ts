@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Res, ServiceUnavailableException } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, ParseIntPipe, Post, Query, Res, ServiceUnavailableException } from '@nestjs/common';
 import { Response } from 'express';
-import { CartService } from 'src/cart/cart.service';
+import { CartService } from 'src/component/cart/cart.service';
 import { ProductService } from './product.service';
 import { StoreService } from './store.service';
 
@@ -18,17 +18,17 @@ export class StoreController {
 
     //매장 상세(상품 목록)
     //http://localhost:3000/store/detail?uid=111&storeId=ST00005937
-    @Get('store/detail')
+    @Get('store/menuList')
     async getStoreDetail(@Res() res: Response,
                         @Query('uid') uid: number,
                         @Query('storeId') storeId: string): Promise<any> {
 
         //1.장바구니 정보 가져와서 같은 가게가 아니면 장바구니 삭제 
         const cartList = await this.cartService.getCartList(uid);
-        
-        //장바구니에 담긴 상품이 현재 매장 상품이 아닌경우 - 장바구니 전체 삭제
+        //장바구니에 담긴 상품이 현재 매장 상품이 아닌경우 - 장바구니 전체 삭제 
+
         if(cartList.length > 0 && cartList[0].strId !== storeId) {
-            await this.cartService.deleteAllCart(uid);
+           await this.cartService.deleteAllCart(uid);
         }
         //장바구니 정보 상세(장바구니 상단 표기 숫자)
         const cartCnt = this.cartService.getCartTotalCnt(cartList);
@@ -41,8 +41,6 @@ export class StoreController {
         //상품 목록
         //get_item_list //외부 api 사용
         const productList = await this.productService.getProductList(storeId);
-        console.log(storeDetail);
-        console.log('--------controller');
         //매장 운영 정보
        const storeOpenChk = await this.storeService.getStoreOpenChk(storeId, storeDetail);
          let body = {
@@ -56,7 +54,7 @@ export class StoreController {
     }
 
     //상품 상세
-    @Get('product/detail')
+    @Get('menu/detail')
     async getProductDetail(@Res() res:Response, 
                         @Query('storeId') storeId: string,
                         @Query('itemId') itemId: string) {

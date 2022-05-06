@@ -23,7 +23,7 @@ import { ProcessException } from './process.exception';
 
       const { httpAdapter } = this.httpAdapterHost;
       const ctx = host.switchToHttp();
-      const httpStatus =
+      let httpStatus =
         exception instanceof HttpException
           ? exception.getStatus()
           : HttpStatus.INTERNAL_SERVER_ERROR;
@@ -41,8 +41,9 @@ import { ProcessException } from './process.exception';
             } 
 
             //결제 중 오류인경우 front에서 message 그대로 보여줌 
-            if(exception instanceof InternalServerErrorException) {
+            if(exception instanceof ProcessException) {
               resultMessage = exception.message;
+              httpStatus = 200;
             }
 
             // if(exception instanceof BadRequestException) {

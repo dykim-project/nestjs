@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { kisServerCon } from '../utils/kis.server.connection';
-import { common } from '../utils/common';
+import { kisServerCon } from '../../utils/kis.server.connection';
+import { common } from '../../utils/common';
 @Injectable()
 export class ProductService {
     constructor() {}

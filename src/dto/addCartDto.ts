@@ -8,4 +8,6 @@ export class AddCartDto extends ProductDto {
     @IsNotEmpty()
     itemQty: number;
 
+    optionIds: Array<String>;
+    baskId: string;
 }

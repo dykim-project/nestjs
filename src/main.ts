@@ -6,17 +6,18 @@ import { text } from 'express';
 import { RequestInterceptor } from './interceptor/request.interceotor';
 import { AllExceptionsFilter } from './exception/allCatch.exception';
 import { ValidationPipe } from '@nestjs/common';
+const cors = require("cors");
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule,  { cors: true });
-  app.enableCors();
-  app.use(helmet());
+  const app = await NestFactory.create(AppModule, {cors:true});
+  //app.use(helmet());
   app.use(urlencoded({extended: true}));
   app.use(text()); 
-  //const httpAdapterHost  = app.get(HttpAdapterHost);
-  //app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
+  app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({forbidNonWhitelisted: true}));
   app.useGlobalInterceptors(new RequestInterceptor());
+
   await app.listen(3000);
 }
 bootstrap();
