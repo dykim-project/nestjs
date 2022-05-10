@@ -7,7 +7,8 @@ export class RawbodyMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     try {
       logger.info(`rawbody ${process.env.NODE_ENV}`);
-      if( req.method !== 'GET') {
+      console.log(req.body);
+      if( req.method !== 'GET' && req.url != '/payment/resultNicePay') {
         req.body = JSON.parse(req.body);
       }
     } catch(error) {

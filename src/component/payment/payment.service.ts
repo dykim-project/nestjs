@@ -8,7 +8,6 @@ import { order } from 'src/entity/order.entity';
 import { orderDetail } from 'src/entity/orderDetail.entity';
 import { kisServerCon } from '../../utils/kis.server.connection';
 import { common } from '../../utils/common';
-const config =  require('../../config/common.config');
 
 export class AuthResultDto {
 
@@ -81,6 +80,7 @@ export class PaymentService {
         try {
             let totalPrice = 0;
             let totalCnt = 0;
+            let goodsCount:number = 0;
             basket.forEach(async data => {
                 let itemId = "";
                 let itemName = "";
@@ -92,6 +92,7 @@ export class PaymentService {
                     itemName = data.prdNm;
                     itemQty = data.ordrCnt;
                     itemPrice = data.salePrc;
+                    goodsCount +=1;
                 } else { // 옵션상품
                     itemId = data.prdId;
                     itemName = `${data.prdOptNm} > ${data.prdNm}`;
@@ -117,8 +118,8 @@ export class PaymentService {
                 }
                 await this.orderDetailModel.create(inputData);
                 //총금액 & 총갯수 count 
-                totalCnt += itemQty;
-                totalPrice += (itemQty * itemPrice);
+                totalCnt += Number(itemQty);
+                totalPrice += (Number(itemQty) * Number(itemPrice));
             });
             //주문tb 상품 총가격 & 갯수 update
             const result = await this.orderModel.update(
@@ -129,6 +130,7 @@ export class PaymentService {
             );
             paymentDto.totalPrice = totalPrice;
             paymentDto.sumProductQty =  totalCnt;
+            paymentDto.goodsCount = goodsCount;
             return paymentDto;
         } catch(error) {
             common.logger(error, '[payment.orderDetailSave]');
@@ -150,11 +152,12 @@ export class PaymentService {
                         payPrc: paymentDto.totalPrice, 
                         ordrPrc: paymentDto.totalPrice,
                         prePayCd: 'P',
-                        postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
-                        ordrCnct: paymentDto.userTel,
-                        ordrDesc: (paymentDto.customerReq)?.substring(0, 100),
+                        //postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
+                        orderCnct: paymentDto.userTel,
+                        ordrDesc: '',
                         discPrc: 0 
                     };
+
         let result = await kisServerCon('/api/channel/nonpage/order/insert', data);
         if(result.data.success) {
             result = result.data.data;
@@ -165,68 +168,19 @@ export class PaymentService {
         }
     }
 
-    
-    //nicepay 인증요청 payRequest_utf
-    async nicepayAuth(paymentDto: PaymentDto): Promise<any> {
-//         $merchantKey = MERCHANT_KEY; // 상점키
-// $orderId	 = $_POST["orderId"]; // 주문ID
-// $MID         = MID; // 상점아이디
-// $goodsName   = $_POST["goodName"]; // 결제상품명
-// $price       = $_POST["price"]; // 결제상품금액
-// $buyerName   = $_POST["userName"]; // 구매자명 
-// $buyerTel	 = $_POST["phone"]; // 구매자연락처
-// $buyerEmail  = $_POST["email"]; // 구매자메일주소        
-// $moid        = $_POST["Moid"]; // 상품주문번호                     
-// $storeId     = $_POST["storeId"]; // 상품주문번호                     
-// $returnURL	 = "https://hworder.smarteaglespark.com/webui/nicepay/payResult_utf.php"; // 결과페이지(절대경로) - 모바일 결제창 전용
-// var goodName = mainMenuName + " " + mainMenuCount + "개";
-// if (goodsCount > 1) {
-//     goodName = goodName + " 외 " + goodsCount + " 품목"
-// }       
+    //결제 결과 업데이트
+    async authUpdate(bodyData) {
+        const result = await this.orderModel.update(
+            {mid: bodyData.MID,
+             tid: bodyData.TxTid,
+             amt: bodyData.Amt,
+             moid: bodyData.Moid
+             //auth
 
-        try { 
-            const url = '';
-            const data = {
-                orderId: paymentDto.orderId,
-                MID: config.MID, //define("MID", "ddfactor1m");
-                goodsName: ''
-            };
-            axios
-            .post(url, data, {
-                timeout: 15, 
-                headers: {
-                Accept: "application/json",
-                
-                },
-            })
-            .then(({data}) => {
-                //성공
-                //if($authResultCode === "0000"){
-                    //리턴 파라미터들 
-                   /* $authResultCode = $_POST['AuthResultCode'];		// 인증결과 : 0000(성공)
-                    $authResultMsg = $_POST['AuthResultMsg'];		// 인증결과 메시지
-                    $nextAppURL = $_POST['NextAppURL'];				// 승인 요청 URL
-                    $tid = $_POST['TxTid'];						// 거래 ID
-                    $authToken = $_POST['AuthToken'];				// 인증 TOKEN
-                    $payMethod = $_POST['PayMethod'];				// 결제수단
-                    $mid = $_POST['MID'];							// 상점 아이디
-                    $moid = $_POST['Moid'];							// 상점 주문번호
-                    $amt = $_POST['Amt'];							// 결제 금액
-                    $orderId = $_POST['ReqReserved'];			// 주문ID
-                    $netCancelURL = $_POST['NetCancelURL'];			// 망취소 요청 URL*/
-                //} else {
-                    //실패
-                //}
-            });
-        } catch(error) { 
-            logger.error('[payment.nicepayAuth]');
-            logger.error(error);
-            error.errorCode = 502;
-            error.errorMessage = 'PAYMENT_FAIL';
-            throw new InternalServerErrorException(error);
-     }
-    }    
-    
+            },
+            {where : {orderId: bodyData.Moid} }
+        );
+    }
     //결제 승인 요청
     async nicepayApproval(authResult: AuthResultDto): Promise<any> {
         try {
@@ -246,21 +200,33 @@ export class PaymentService {
     }
 
     //스마트 오더 진행..?  
-    async orderWithPg(authResult: AuthResultDto) {
+    async orderWithPg(authResult: any) {
         try {
             //phpsorce - 'payment_order_with_pg'실행
-            //실패코드일때
-            //if ($payment_result['rst'] == 0) {
-                //결제 취소 진행
-                this.cancelPayment();
-            //}
-            //성공일때
+            const data = {ordrId: authResult.Moid, 
+                pgMID:authResult.MID, 
+                pgTrId:authResult.TID,
+                pgAuthNo: authResult.AuthCode,
+                cardIssueCorpNo: authResult.CardCode,
+                cardIssueCorpNm: authResult.CardName
+            }; 
+
+            let result = await kisServerCon('/api/channel/nonpage/extpg/approval', data);
+            if(result.data.success) {
+                result = result.data.data;
+                if(result.rst === 0) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
             //주문db 상태 update - ks_order status = 1001
-            await this.updateOrderStatus('', '1001'); 
+            await this.updateOrderStatus(authResult.Moid, '1001'); 
+            return true;
             //return success
         } catch(error) {
             //결제 취소 
-            await this.cancelPayment();
+           return false;
         }
     }
 

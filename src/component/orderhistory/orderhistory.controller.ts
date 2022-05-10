@@ -1,4 +1,5 @@
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, ParseIntPipe, Query, Res } from '@nestjs/common';
+import { query, Response } from 'express';
 import { StoreService } from '../store/store.service';
 import { OrderhistoryService } from './orderhistory.service';
 
@@ -8,24 +9,35 @@ export class OrderhistoryController {
         private readonly storeService: StoreService
         ) {}
         //주문 목록 order_history.php
-        @Get('history')
-        async orderList(@Query('uid') uid: number) { 
+        @Get('list')
+        async orderList(@Res() res:Response, @Query('uid') uid: number) { 
             //주문목록 조회 
             let ordrList = await this.orderHistoryService.getOrderList(uid);
             // 주문번호를 통해 디비에서 store_id 취득
             ordrList.map(async data => {
-                let storeId = await this.orderHistoryService.getOrderStore(data.strId);
+                let storeId = await this.orderHistoryService.getOrderStoreId(data.strId);
                 //가게 상세정보 조회하기 
                 let storeDetail = await this.storeService.getStoreDetail(storeId);
                 //목록에 가게정보 추가
                 ordrList.storeDetail = storeDetail;
             })
-            let body = {ordrList}
+            let body = {ordrList,
+                        statusCode:200}
+            return res.json(body);
         }
 
     
         //주문상세 order_detail.php
-        async orderDetail() {
+        @Get('detail')
+        async orderDetail(@Res() res:Response, @Query('uid') uid: number, @Query('orderId') ordrId: string) {
+            //가게정보 조회도 같이
+            let orderData = await this.orderHistoryService.getOrderData(ordrId);
+           
+            let storeDetail = await this.storeService.getStoreDetail(orderData.storeId);
+            //const orderKisData = await this.orderHistoryService.getOrderKisData(uid, ordrId);
+            
+            const orderDetail = await this.orderHistoryService.getOrderDetail(ordrId);
+            //매장이름, 매장상세정보, 매장 이미지; 
             //주문내역 조회(매장아이디, 주문금액, 결제 금액, 주문상태)
             //$sql = "select * from ks_order where order_id=%s";
                 //$store_id = $order_row['store_id'];         // 매장아이디
@@ -45,6 +57,12 @@ export class OrderhistoryController {
                 //item_name
                 //item_qty
                 //item_price
+            let body = {orderData,
+                //orderKisData,
+                storeDetail,
+                orderDetail,
+                statusCode: 200}
+            res.json(body);
         }
     
         //주문 취소 ajax_order_cancel.php
