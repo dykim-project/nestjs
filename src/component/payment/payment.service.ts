@@ -58,12 +58,13 @@ export class PaymentService {
                 //payType: '',
                 //couponCategory
                 //couponId
+
                 addr:paymentDto.orderAddr , //$seat_area."|".$seat_name."|".$seat_num;
                 tel: paymentDto.userTel,
                 uid: paymentDto.uid, 
-                user_id: paymentDto.userId,//'temp_Id',
-                user_name: paymentDto.userName,// 'name',
-                os_type: paymentDto.osType
+                userId: paymentDto.userId,//'temp_Id',
+                userName: paymentDto.userName,// 'name',
+                osType: paymentDto.osType
             }
             const insertResult = await this.orderModel.create(saveData);
             paymentDto.orderId = result.ordrId;
@@ -116,8 +117,6 @@ export class PaymentService {
                     basketIdDetail: data.baskDtlId, 
                     regDate: date.getTime()
                 }
-                console.log('orderDetail:::::::::::::');
-                console.log(inputData);
                 await this.orderDetailModel.create(inputData);
                 //총금액 & 총갯수 count 
                 totalCnt += Number(itemQty);
@@ -144,23 +143,28 @@ export class PaymentService {
     //주문 등록 phpsource - regist_order로 주문등록
     async registOrder(paymentDto: PaymentDto) {
         //paymentDto.totalPrice ===0 이면 error 처리 
+       
         const data = {chnlMbrId: paymentDto.uid,
                         strId: paymentDto.storeId,
                         ordrId: paymentDto.orderId,
                         payMthdCd: 'PC',
                         PayMethod: 'CARD',
                         pgCd: 'WL',
-                        ordrKindCd: '2ICP',
-                        payPrc: paymentDto.totalPrice, 
-                        ordrPrc: paymentDto.totalPrice,
+                        ordrKindCd:  '2ICA',//'2ICP'픽업,
+                        payPrc: `${paymentDto.totalPrice}`, 
+                        ordrPrc: `${paymentDto.totalPrice}`,
                         prePayCd: 'P',
                         postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
                         orderCnct: paymentDto.userTel,
+                        ordeCnct: paymentDto.userTel,
                         ordrDesc: '',
                         discPrc: 0 
                     };
 
+                    
         let result = await kisServerCon('/api/channel/nonpage/order/insert', data);
+        console.log('orderInsert::::::::::::::::');
+        console.log(result)
         if(result.data.success) {
             result = result.data.data;
         } else {
@@ -168,6 +172,7 @@ export class PaymentService {
             common.logger(result.data, '[payment.registOrder]');
             common.errorException(502, 'REGIST_ORDER_FAIL', result.data);
         }
+        return result;
     }
 
     //결제 결과 업데이트
@@ -238,9 +243,11 @@ export class PaymentService {
             }; 
 
             let result = await kisServerCon('/api/channel/nonpage/extpg/approval', data);
+            console.log('in orderWithPg:::::::::::::::');
+            console.log(result);
             if(result.data.success) {
                 result = result.data.data;
-                if(result.rst === 0) {
+                if(result.data.rst === 0) {
                     return false;
                 }
             } else {

@@ -3,7 +3,7 @@ import { logger } from 'src/config/winston';
 const iconv = require('iconv-lite');
 
 export const nicepayNetcancel  = async ( data: any):Promise<any> => {
-    data = {...DataTransfer, ...{CancelMsg: iconv("UTF-8", "EUC-KR", data.CancelMsg)}}
+    data = {...data, ...{CancelMsg: iconv.encode(data.CancelMsg, "EUC-KR")}}
     var options = {
         url: 'https://webapi.nicepay.co.kr/webapi/cancel_process.jsp',
         //method: 'POST',

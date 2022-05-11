@@ -32,7 +32,7 @@ export class OrderhistoryService {
         const result = await this.orderModel.findOne(
         { where: { orderId: ordrId } , 
         attributes:['storeId']});
-        return result.storeId;
+        return result? result.storeId: '';
     }
 
     //주문정보
