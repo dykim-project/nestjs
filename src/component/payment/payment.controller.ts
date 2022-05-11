@@ -42,7 +42,8 @@ export class PaymentController {
         await this.paymentService.registCart(paymentDto);
         //4.주문상세tb 저장 & 주문tb 총금액 update 
         await this.paymentService.orderDetailSave(basketInfo, paymentDto);
-
+        console.log('basket:::::::::::::');
+        console.log(basketInfo);
         //6. 외부 api regist_order로 주문서 접수 
         //const result = await this.paymentService.registOrder(paymentDto);
         //backand - goodsName, price, totalPRicd,userName, userEmail, usertel
@@ -50,59 +51,39 @@ export class PaymentController {
         if(basketInfo.length > 1) {
             goodName = basketInfo[0].prdNm + " 외 " + (paymentDto.goodsCount-1) + " 품목";
         }
-
-        return res.json({statusCode: 200});
-        //---nice pay결제---------------------- 
-        //payment(rtn.order_id, rtn.store_id, rtn.pay_price, rtn.order_id);
-        //6.결제 인증요청(nicepayment 인증요청)  payRequest_utf.php 참고
-       // const nicepayAuthResult = await this.paymentService.nicepayAuth(paymentDto);
-        //7.결제 승인요청(nicepayment 인증요청)
-        //await this.paymentService.nicepayApproval(nicepayAuthResult);
-        
-        //8.결제정보 주문db update
-        //await this.paymentService.orderDataUpdate(nicepayAuthResult);
-        
-        //9. payment_order_with_pg <-스마트 오더 진행..?
-        //payResult_utf.php 참고
-        //await this.paymentService.orderWithPg(nicepayAuthResult);
-    }
-
-    //장바구니에서 결제하기 클릭했을때 결제 process
-    @Post('/test')
-    async paymentTest(@Req() req: Request, @Res() res: Response, @Body() paymentDto: PaymentDto ){
-        paymentDto.totalPrice = 500;
-        paymentDto.userTel= '01047675027';
-
-
-        paymentDto.orderId = '00000001489338';
-        paymentDto.userName = '김다영';
-        paymentDto.email = 'dykim5027@ddfactory.kr';
-        //6. 외부 api regist_order로 주문서 접수 
+        console.log('test:::::::::::::' + goodName);
         const now = common.getYYYYMMDDHHMMSS();
         let envalue =  now + config.MID + paymentDto.totalPrice + config.MKEY;
-         // sha256Enc.encrypt(ediDate + merchantID + price + merchantKey);
         let encrypt = common.getSignData(envalue);
         let data = {userData: paymentDto,
-            goodsName: '테스트상품 외 1개',
+            goodsName: goodName,
             totalPrice: paymentDto.totalPrice,
             ediDate: now,
             signData: encrypt,
-            orderId: '00000001489338',
-            //$hashString = bin2hex(hash('sha256', $ediDate.$MID.$price.$merchantKey, true));
+            orderId: paymentDto.orderId,
             statusCode: 200
-                    }
-        console.log(data);
-        return res.json(data);
+        }
+        console.log(data);         
+        return res.json({statusCode: 200 , ...data});
     }
+
 
     async validationError(msg, res, cancelBody?) {
         console.log('validation Error');
         //fail update 
-        await this.paymentService.updateOrderStatus(cancelBody.orderId, 'EC9999');
-        const result =  await nicepayNetcancel(cancelBody);
+        try{
+            await this.paymentService.updateOrderStatus(cancelBody.orderId, 'EC9999');
+            const result =  await nicepayNetcancel(cancelBody);
+        } catch(error) {
+            let body = `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다1 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`;
+            console.log(body);
+            return res.send({
+                body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`
+            })
+        }
         return res.send({
-            body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`
-          })
+        body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`
+        })
     }
 
     @Post('resultNicePay') 
@@ -117,7 +98,7 @@ export class PaymentController {
         let body = null;
         let requestBody = {
             signData: encrypt,
-            //TID: bodyData.TxTid,
+            TID: bodyData.TxTid,
             AuthToken: bodyData.AuthToken,
             MID: bodyData.MID,
             Amt: bodyData.Amt,
@@ -178,14 +159,13 @@ export class PaymentController {
                     if (result.data.payMethod === 'VBANK') {
                     } else {
                         //결제상태 
-                        //payment_order_with_pg //kis server
-                        const orderWithPg = this.paymentService.orderWithPg(result.data);
-                        //실패인경우
-                        if(!orderWithPg) {
-                            cancelBody = {...cancelBody,...{CancelMsg:'스마트 오더 에러'}}
-                            return this.validationError(result.data.ResultMsg, res, cancelBody);
-                        }
-                        this.paymentService.authUpdate(bodyData);
+                        // const orderWithPg = this.paymentService.orderWithPg(result.data);
+                        // //실패인경우
+                        // if(!orderWithPg) {
+                        //     cancelBody = {...cancelBody,...{CancelMsg:'스마트 오더 에러'}}
+                        //     return this.validationError(result.data.ResultMsg, res, cancelBody);
+                        // }
+                        this.paymentService.authUpdate(result.data);
                         this.paymentService.updateOrderStatus( bodyData.Moid, '1001');
                     }
                     return res.send({

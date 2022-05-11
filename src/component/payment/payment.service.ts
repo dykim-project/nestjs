@@ -116,6 +116,8 @@ export class PaymentService {
                     basketIdDetail: data.baskDtlId, 
                     regDate: date.getTime()
                 }
+                console.log('orderDetail:::::::::::::');
+                console.log(inputData);
                 await this.orderDetailModel.create(inputData);
                 //총금액 & 총갯수 count 
                 totalCnt += Number(itemQty);
@@ -152,7 +154,7 @@ export class PaymentService {
                         payPrc: paymentDto.totalPrice, 
                         ordrPrc: paymentDto.totalPrice,
                         prePayCd: 'P',
-                        //postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
+                        postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
                         orderCnct: paymentDto.userTel,
                         ordrDesc: '',
                         discPrc: 0 
@@ -169,16 +171,57 @@ export class PaymentService {
     }
 
     //결제 결과 업데이트
-    async authUpdate(bodyData) {
+    async authUpdate(authData) {
+        console.log('inauth:::::::::::::::::::::');
+        console.log(authData);
+        // ResultCode: '3001',
+        // ResultMsg: '카드 결제 성공',
+        // Amt: '000000009000',
+        // MID: 'nicepay00m',
+        // Moid: '00000001492630',
+        // BuyerEmail: 'yeg1511@naver.com',
+        // BuyerTel: '11111111111',
+        // BuyerName: '양일권',
+        // GoodsName: '더치맥주 2개',
+        // TID: 'nicepay00m01012205101857514862',
+        // AuthCode: '03182126',
+        // AuthDate: '220510185753',
+        // PayMethod: 'CARD',
+        // CartData: '',
+        // Signature: '27d0ede6fca981b0f8a3e319ea803679611827f674a180de58ac159a1a30731a',
+        // MallReserved: '',
+        // CardCode: '04',
+        // CardName: '삼성',
+        // CardNo: '53664800****4472',
+        // CardQuota: '00',
+        // CardInterest: '0',
+        // AcquCardCode: '04',
+        // AcquCardName: '삼성',
+        // CardCl: '0',
+        // CcPartCl: '1',
+        // CouponAmt: '000000000000',
+        // CouponMinAmt: '000000000000',
+        // PointAppAmt: '000000000000',
+        // ClickpayCl: '',
+        // MultiCl: '',
+        // MultiCardAcquAmt: '',
+        // MultiPointAmt: '',
+        // MultiCouponAmt: '',
+        // RcptType: '',
+        // RcptTID: '',
+        // RcptAuthCode: '',
+        // CardType: '01'
         const result = await this.orderModel.update(
-            {mid: bodyData.MID,
-             tid: bodyData.TxTid,
-             amt: bodyData.Amt,
-             moid: bodyData.Moid
-             //auth
+            {mid: authData.MID,
+             tid: authData.TID,
+             amt: authData.Amt,
+             moid: authData.Moid,
+             cardName: authData.CardName,
+             cardCode: authData.CardCode,
+             authCode: authData.AuthCode
 
             },
-            {where : {orderId: bodyData.Moid} }
+            {where : {orderId: authData.Moid} }
         );
     }
     //결제 승인 요청
