@@ -9,15 +9,19 @@ import { StoreModule } from './component/store/store.module';
 import { PaymentModule } from './component/payment/payment.module';
 import { CartModule } from './component/cart/cart.module';
 import { OrderhistoryModule } from './component/orderhistory/orderhistory.module';
-const devConfig = require('./config/db.dev.config');
-const prodConfig = require('./config/db.prod.config');
-const dbConfig = process.env.NODE_ENV == 'dev' ? prodConfig : devConfig;
+const { accountdb, mddb }= require('./config/db.config');
 @Module({
   imports: [
-  SequelizeModule.forRoot({
-      ...dbConfig,
+    SequelizeModule.forRoot({
+      ...mddb
     }
-  ), 
+  ),
+  SequelizeModule.forRoot({
+    ...accountdb
+    ,name: 'accountdb'
+  }
+),
+
   StoreModule,
   PaymentModule,
   CartModule,

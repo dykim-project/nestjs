@@ -5,6 +5,7 @@ import { logger } from 'src/config/winston';
 
 
 export const nicepayApproval  = async (requestUrl:string, data: any, res: Response):Promise<any> => {
+    
     var options = {
         url: requestUrl,
         //method: 'POST',
@@ -15,9 +16,27 @@ export const nicepayApproval  = async (requestUrl:string, data: any, res: Respon
        // encoding: null,
        params: {...data}  
     }
-
-    const result= await axios.request( options );
-    return result;
+    try {
+        const result= await axios.request( options );
+        return result;
+    } catch(error) {
+        console.log('망취소 진행::');
+        //실패시 망취소 진행
+            data = {...data, ...{NetCancel: '1'}}
+            var cancelOptions = {
+                url: data.netCancelUrl,
+                headers: {
+                    'User-Agent': 'Super Agent/0.0.1',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+               // encoding: null,
+               params: {...data}  
+            }
+            
+            await axios.request( cancelOptions );
+            return {status: 500}
+    } 
 }
+
 
     

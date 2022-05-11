@@ -172,8 +172,6 @@ export class PaymentService {
 
     //결제 결과 업데이트
     async authUpdate(authData) {
-        console.log('inauth:::::::::::::::::::::');
-        console.log(authData);
         // ResultCode: '3001',
         // ResultMsg: '카드 결제 성공',
         // Amt: '000000009000',
@@ -224,23 +222,8 @@ export class PaymentService {
             {where : {orderId: authData.Moid} }
         );
     }
-    //결제 승인 요청
-    async nicepayApproval(authResult: AuthResultDto): Promise<any> {
-        try {
 
-        } catch(error) {
-            //실패시 망취소 
-            await this.cancelNetwork();
-            logger.error('[payment.nicepayApproval]');
-            logger.error(error);
-            throw new InternalServerErrorException('PAYMENT_FAIL');
-        }
-    }
 
-    //결제정보 주문db update
-    async orderDataUpdate(authResult: AuthResultDto) {
-
-    }
 
     //스마트 오더 진행..?  
     async orderWithPg(authResult: any) {
@@ -327,16 +310,6 @@ export class PaymentService {
         return {resultCode:'', resultMsg:''}
     }
 
-    getUserAgent(req: Request) {
-        let user_agent = req.header('User-Agent') //userAgent 값 얻기
-        let os_type = "etc";
-        if (user_agent.match('android') != null) { 
-            os_type = "android";
-        } else if (user_agent.indexOf("iphone") > -1 || user_agent.indexOf("ipad") > -1 || user_agent.indexOf("ipod") > -1) { 
-            os_type = "ios";
-        }
-        return os_type;
-    }
 
     
 }

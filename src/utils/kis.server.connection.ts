@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { logger } from 'src/config/winston';
+import { ProcessException } from 'src/exception/process.exception';
 export const kisServerCon = async (url:string, data?: any):Promise<any> => {
     const instance = axios.create({
-        timeout: 5000,
       });
 
     try {
@@ -28,9 +28,8 @@ export const kisServerCon = async (url:string, data?: any):Promise<any> => {
         );
         return result;
     } catch (error) {
-        console.log(error);
         logger.error(`[KIS SERVER ERROR] ${error.response?.data?.errorMsg}`);
-        return error.response;
+        throw new ProcessException(error, "kisserver ");
     } 
     
 }

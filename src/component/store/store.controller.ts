@@ -12,8 +12,9 @@ export class StoreController {
     
     //매장 목록
     @Get('store/list')
-    async getStoreList(@Res() res:Response) {
-      return res.json(await this.storeService.getStoreList());
+    async getStoreList(@Res() res:Response):Promise<any> {
+      const result = await this.storeService.getStoreList();
+      return res.json(result);
     }
 
     //매장 상세(상품 목록)

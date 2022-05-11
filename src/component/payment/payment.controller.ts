@@ -9,6 +9,7 @@ import { StoreService } from 'src/component/store/store.service';
 import { nicepayApproval } from 'src/utils/nicepay.approval';
 import { nicepayNetcancel } from 'src/utils/nicepay.netcancel';
 import { MESSAGES } from '@nestjs/core/constants';
+import { logger } from 'src/config/winston';
 const config = require('../../config/config');
 const crypto = require('crypto');
 const iconv = require('iconv-lite');
@@ -42,8 +43,6 @@ export class PaymentController {
         await this.paymentService.registCart(paymentDto);
         //4.주문상세tb 저장 & 주문tb 총금액 update 
         await this.paymentService.orderDetailSave(basketInfo, paymentDto);
-        console.log('basket:::::::::::::');
-        console.log(basketInfo);
         //6. 외부 api regist_order로 주문서 접수 
         //const result = await this.paymentService.registOrder(paymentDto);
         //backand - goodsName, price, totalPRicd,userName, userEmail, usertel
@@ -51,7 +50,7 @@ export class PaymentController {
         if(basketInfo.length > 1) {
             goodName = basketInfo[0].prdNm + " 외 " + (paymentDto.goodsCount-1) + " 품목";
         }
-        console.log('test:::::::::::::' + goodName);
+        logger.info('goodName:::::::::::' + goodName);
         const now = common.getYYYYMMDDHHMMSS();
         let envalue =  now + config.MID + paymentDto.totalPrice + config.MKEY;
         let encrypt = common.getSignData(envalue);
@@ -71,16 +70,7 @@ export class PaymentController {
     async validationError(msg, res, cancelBody?) {
         console.log('validation Error');
         //fail update 
-        try{
-            await this.paymentService.updateOrderStatus(cancelBody.orderId, 'EC9999');
-            const result =  await nicepayNetcancel(cancelBody);
-        } catch(error) {
-            let body = `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다1 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`;
-            console.log(body);
-            return res.send({
-                body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`
-            })
-        }
+  
         return res.send({
         body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`
         })
@@ -105,7 +95,8 @@ export class PaymentController {
             EdiDate: now,
             SignData: encrypt,
             Moid: bodyData.Moid,
-            CharSet: 'utf-8'
+            CharSet: 'utf-8',
+            netCancelUrl: bodyData.NetCancelURL
         }
 
         let cancelBody = {
@@ -158,12 +149,19 @@ export class PaymentController {
                     }
                     if (result.data.payMethod === 'VBANK') {
                     } else {
-                        //결제상태 
+                        //스마트오더 주문 상태 변경 
                         // const orderWithPg = this.paymentService.orderWithPg(result.data);
-                        // //실패인경우
+                        // //실패인경우 결제 취소 
                         // if(!orderWithPg) {
                         //     cancelBody = {...cancelBody,...{CancelMsg:'스마트 오더 에러'}}
-                        //     return this.validationError(result.data.ResultMsg, res, cancelBody);
+                        // try{
+                        //     await this.paymentService.updateOrderStatus(cancelBody.orderId, 'EC9999');
+                        //     const result =  await nicepayNetcancel(cancelBody);
+                        // } catch(error) {
+                        //     return res.send({
+                        //         body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 \n ${msg}'); window.location.replace('${config.frontServer}/storeList') </script></html>`
+                        //     })
+                        // }
                         // }
                         this.paymentService.authUpdate(result.data);
                         this.paymentService.updateOrderStatus( bodyData.Moid, '1001');
@@ -177,6 +175,18 @@ export class PaymentController {
             }
 
         } else {
+            //망취소 
+            // $data = Array(
+            //     'TID' => $tid,
+            //     'AuthToken' => $authToken,
+            //     'MID' => $mid,
+            //     'Amt' => $amt,
+            //     'EdiDate' => $ediDate,
+            //     'SignData' => $signData,
+            //     'NetCancel' => '1',
+            //     'CharSet' => 'utf-8'
+            // );
+            // $response = reqPost($data, $netCancelURL); //예외 발생시 망취소 진행
             this.validationError('결제 요청을 실패했습니다. (error)', res, cancelBody);
         }
     }

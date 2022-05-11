@@ -13,8 +13,8 @@ import { isNotEmpty } from "class-validator";
 @Injectable()
 export class CartService {
     constructor(
-        @InjectModel(userInfo)
-        private userInfoModel: typeof userInfo
+       // @InjectModel(userInfo, 'accountdb')   
+       // private userInfoModel: typeof userInfo
     ) {}
     //장바구니 등록
     //return 갯수, 총금액
@@ -89,11 +89,11 @@ export class CartService {
     //사용자 정보 저장
     async saveUserInfo(cartDto: CartDto) {
         try {
-            const [instance, created]  =  await this.userInfoModel.upsert({
-                uid: cartDto.uid,
-                userName: cartDto.userName,
-                pushToken: cartDto.pushToken, //'2020202020'
-            });
+            // const [instance, created]  =  await this.userInfoModel.upsert({
+            //     uid: cartDto.uid,
+            //     userName: cartDto.userName,
+            //     pushToken: cartDto.pushToken, //'2020202020'
+            // });
         } catch(error) {
             common.logger(error, '[cart.saveUserInfo]');
             common.errorException(502, 'SAVEUSER_INFO', error);

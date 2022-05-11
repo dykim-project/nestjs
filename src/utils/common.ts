@@ -6,6 +6,7 @@ export const common = {
     errorException (code, message, error) {
         const data = {statusCode: code, resultMessage: message}
         error = {...error, ...data};
+        console.log('res error:::::::::::::');
         throw new BadRequestException(error);
     },
     logger (error, methodName) {

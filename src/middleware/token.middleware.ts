@@ -10,7 +10,6 @@ let jwtObj = {secret: config.JWT_SECRET};
 
 
 const tokenChk = async (token) => {
-  console.log('tokenchk::::::::::::');
   axios.defaults.baseURL = `${config.REACT_APP_API_URL}`;
   axios.defaults.headers.post['Content-Type'] = 'application/json';
   axios.interceptors.request.use((config) => {
@@ -35,19 +34,20 @@ const tokenChk = async (token) => {
 @Injectable()
 export class TokenMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
+    res.set({'Access-Control-Allow-Origin':  req.header('Origin')});
+    res.set({'Access-Control-Allow-Credentials' : 'true'});
+    res.set({'ccess-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS'})
+    res.set({'Access-Control-Allow-Headers' : 'X-PINGOTHER, Content-Type'})
     if(req.url == '/payment/resultNicePay') {
      return next();
     }
     try {
-      res.set({'Access-Control-Allow-Origin':  req.header('Origin')});
-      res.set({'Access-Control-Allow-Credentials' : 'true'});
-      res.set({'ccess-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS'})
-      res.set({'Access-Control-Allow-Headers' : 'X-PINGOTHER, Content-Type'})
+     
       //token, refreshToken
       let {token, refreshToken} = req.cookies;
       let param = {};
       //토큰 유효성 체크 
-      tokenChk(token);
+      logger.info(token);
        //jwt 값 얻기 
        jwt.verify(token, `${jwtObj.secret}`, function(err, decoded) {
          if(err) {

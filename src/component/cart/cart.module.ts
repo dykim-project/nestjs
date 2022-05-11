@@ -5,7 +5,6 @@ import { StoreService } from 'src/component/store/store.service';
 import { ProductService } from 'src/component/store/product.service';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { userInfo } from 'src/entity/userInfo.entity';
-
 @Module({
   imports:[SequelizeModule.forFeature([userInfo])],
   providers: [CartService, StoreService, ProductService],
