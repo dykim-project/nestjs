@@ -43,14 +43,13 @@ export class PaymentController {
         await this.paymentService.orderDetailSave(basketInfo, paymentDto);
         //6. 외부 api regist_order로 주문서 접수 
         const result = await this.paymentService.registOrder(paymentDto);
-        console.log('registorder');
-        console.log(result);
+        console.info('registorder');
+        logger.info(result);
         //backand - goodsName, price, totalPRicd,userName, userEmail, usertel
         let goodName = basketInfo[0].prdNm + " " + paymentDto.sumProductQty + '개';
         if(basketInfo.length > 1) {
             goodName = basketInfo[0].prdNm + " 외 " + (paymentDto.goodsCount-1) + " 품목";
         }
-        logger.info('goodName:::::::::::' + goodName);
         const now = common.getYYYYMMDDHHMMSS();
         let envalue =  now + config.MID + paymentDto.totalPrice + config.MKEY;
         let encrypt = common.getSignData(envalue);
@@ -62,7 +61,7 @@ export class PaymentController {
             orderId: paymentDto.orderId,
             statusCode: 200
         }
-        console.log(data);         
+        logger.info('make payment::::');
         return res.json({statusCode: 200 , ...data});
     }
 
@@ -166,6 +165,9 @@ export class PaymentController {
                             if(result.data.ResultCode === 2001) {
                                 await this.paymentService.updateOrderStatus(cancelBody.orderId, 'EC9999');
                             }
+                            return res.send({
+                                body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 '); window.location.replace('${config.frontServer}/storeList') </script></html>`
+                            })
                             } catch(error) {
                                 console.log('cancel error:::::::::::::::::::::::');
                                 console.log(error);
@@ -174,6 +176,7 @@ export class PaymentController {
                                 })
                             }
                         } else {
+                            //완료후 장바구니 지우기 ??
                             this.paymentService.authUpdate(result.data);
                             this.paymentService.updateOrderStatus( bodyData.Moid, '1001');
                         }

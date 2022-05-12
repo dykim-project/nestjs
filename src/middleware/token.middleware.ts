@@ -47,7 +47,11 @@ export class TokenMiddleware implements NestMiddleware {
       let {token, refreshToken} = req.cookies;
       let param = {};
       //토큰 유효성 체크 
+      logger.info('token::::::::::::::');
       logger.info(token);
+      if(!token) {
+        return res.json({statusCode:401, message:'token'});
+      }
        //jwt 값 얻기 
        jwt.verify(token, `${jwtObj.secret}`, function(err, decoded) {
          if(err) {

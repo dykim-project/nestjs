@@ -38,7 +38,7 @@ export class OrderhistoryController {
             let orderData = await this.orderHistoryService.getOrderData(ordrId);
            
             let storeDetail = await this.storeService.getStoreDetail(orderData.storeId);
-            //const orderKisData = await this.orderHistoryService.getOrderKisData(uid, ordrId);
+            const orderKisData = await this.orderHistoryService.getOrderKisData(uid, ordrId);
             //orderDetail정보 db조회
             const orderDetail = await this.orderHistoryService.getOrderDetail(ordrId);
             //매장이름, 매장상세정보, 매장 이미지; 
@@ -62,7 +62,7 @@ export class OrderhistoryController {
                 //item_qty
                 //item_price
             let body = {orderData,
-                //orderKisData,
+                orderKisData,
                 storeDetail,
                 orderDetail,
                 statusCode: 200}

@@ -12,5 +12,6 @@ export class PaymentDto extends CommonDto {
     totalPrice: number = 0;
     sumProductQty: number = 0; //상품 총갯수
     email: string;
+    name: string;
     goodsCount: number = 0;
 }

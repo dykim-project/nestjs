@@ -14,6 +14,7 @@ export class StoreController {
     @Get('store/list')
     async getStoreList(@Res() res:Response):Promise<any> {
       const result = await this.storeService.getStoreList();
+      //getcategory
       return res.json(result);
     }
 
@@ -36,8 +37,9 @@ export class StoreController {
         //get_store_info($store_id); //외부 api 사용 ST00005937
         const storeDetail = await this.storeService.getStoreDetail(storeId);
         //카테고리 목록
-        //const categoryList = await this.productService.getCategoryList(storeId);
-        
+        const categoryList = await this.productService.getCategoryList(storeId);
+        console.log('categoryList');
+        console.log(categoryList);
         //상품 목록
         //get_item_list //외부 api 사용
         const productList = await this.productService.getProductList(storeId);
@@ -48,6 +50,7 @@ export class StoreController {
              storeDetail,
              productList,
              storeOpenChk,
+             categoryList,
              statusCode: 200
         }
         return res.json(body);
@@ -70,6 +73,22 @@ export class StoreController {
         }
         return res.json(body);        
     } 
+
+    //카테고리의 상품
+    @Get('category/items')
+    async getCategoryItems(@Res() res:Response, 
+                        @Query('storeId') storeId: string,
+                        @Query('category') itemId: string) {
+        
+        //카테고리상품조회
+        const productList = await this.productService.getProductList(storeId, itemId);                           
+        let body = {
+            productList,
+            statusCode: 200
+        }
+        return res.json(body);        
+    } 
+
 
 
 }

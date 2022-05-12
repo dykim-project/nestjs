@@ -30,6 +30,7 @@ export class PaymentService {
             //phpsorce - regist_cart 주문서 등록 
             const data = {chnlMbrId: paymentDto.uid, 
                             strId:paymentDto.storeId, 
+
                             ordrKindCdPrefix:'2'}; //ordrKindCdPrefix는 '2'를 고정으로 전달 한다.
         
             let result = await kisServerCon('/api/channel/nonpage/order/getSubmitInfo', data);
@@ -63,7 +64,7 @@ export class PaymentService {
                 tel: paymentDto.userTel,
                 uid: paymentDto.uid, 
                 userId: paymentDto.userId,//'temp_Id',
-                userName: paymentDto.userName,// 'name',
+                userName: paymentDto.name,// 'name',
                 osType: paymentDto.osType
             }
             const insertResult = await this.orderModel.create(saveData);
@@ -150,7 +151,7 @@ export class PaymentService {
                         payMthdCd: 'PC',
                         PayMethod: 'CARD',
                         pgCd: 'WL',
-                        ordrKindCd:  '2ICA',//'2ICP'픽업,
+                        ordrKindCd:  '2ICP',//선불결제
                         payPrc: `${paymentDto.totalPrice}`, 
                         ordrPrc: `${paymentDto.totalPrice}`,
                         prePayCd: 'P',
@@ -244,9 +245,8 @@ export class PaymentService {
 
             let result = await kisServerCon('/api/channel/nonpage/extpg/approval', data);
             console.log('in orderWithPg:::::::::::::::');
-            console.log(result);
+            console.log(result.data);
             if(result.data.success) {
-                result = result.data.data;
                 if(result.data.rst === 0) {
                     return false;
                 }
