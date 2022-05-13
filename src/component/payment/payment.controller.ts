@@ -115,7 +115,29 @@ export class PaymentController {
             try{
                 const result = await nicepayApproval(bodyData.NextAppURL, requestBody, res);
                 console.log('approval::::::::::::::::::::::::');
-                console.log(result);
+                // data: {
+                //     ResultCode: '4100',
+                //     ResultMsg: '가상계좌 발급 성공',
+                //     Amt: '000000002000',
+                //     MID: 'nicepay00m',
+                //     Moid: '00000001493940',
+                //     BuyerEmail: 'test@abc.com',
+                //     BuyerTel: '22222222222',
+                //     BuyerName: '1',
+                //     GoodsName: '테스트메뉴 2개',
+                //     TID: 'nicepay00m03012205131622392090',
+                //     AuthCode: '',
+                //     AuthDate: '220513162243',
+                //     PayMethod: 'VBANK',
+                //     CartData: '',
+                //     Signature: '93bccb513444c978d6c16c75c7ab16a4980a7dc99389b256bb530cd15edf586d',
+                //     MallReserved: '',
+                //     VbankBankCode: '020',
+                //     VbankBankName: '우리은행',
+                //     VbankNum: '62135617518645',
+                //     VbankExpDate: '20220523',
+                //     VbankExpTime: '235959'
+                //   }
                 if (result.status !== 200) {
                    return this.validationError('결제 요청을 실패했습니다. (2001)', res);
                   }
@@ -156,8 +178,20 @@ export class PaymentController {
                     if (result.data.Signature !== paySignature) {
                         return this.validationError('결제 요청을 실패했습니다. (2002)', res);
                     }
-                    if (bodyData.PayMethod === 'VBANK') {
+
+                    //가상계좌인경우?
+                    if (bodyData.PayMethod === 'VBANK') {//가상계좌
+                        //주문목록에 안들어감 가상계좌는 입금완료후 pos에서 호출해줘야해,,
+                        //this.validationError('결제 요청을 실패했습니다. (가상계좌)', res);
                     } else {
+                        //신용카드가 아닌경우 정상결제후 임의의 카드번호 입력 하기.
+                        if(bodyData.PayMethod !== 'CARD') {
+                            result.data.CardCode = bodyData.PayMethod;
+                            result.data.CardName = bodyData.PayMethod;
+                        }
+                        //스마트 오더 시작--------------------------------------
+                        console.log('smartorder::::::::::::::::::::::');
+                        console.log(result.data);
                         //스마트오더 주문 상태 변경 
                          const orderWithPg = await this.paymentService.orderWithPg(result.data);
                         // //실패인경우 결제 취소 
@@ -195,8 +229,9 @@ export class PaymentController {
                             this.cartService.deleteAllCart(bodyData.ReqReserved);
                         }
                     }
+                    //스마트오더 끝-------------------------
                     return res.send({
-                        body: `<html><script>alert('주문이 완료되었습니다.\n주문 상세화면으로 이동합니다.'); window.location.replace('${config.frontServer}/storeList') </script></html>`
+                        body: `<html><script>window.location.replace('${config.frontServer}/complete') </script></html>`
                     })
                     
             } catch (error) {
