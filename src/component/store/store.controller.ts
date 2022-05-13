@@ -3,13 +3,13 @@ import { Response } from 'express';
 import { CartService } from 'src/component/cart/cart.service';
 import { ProductService } from './product.service';
 import { StoreService } from './store.service';
-
+import { kisServerCon } from '../../utils/kis.server.connection';
 @Controller()
 export class StoreController {
     constructor(private readonly storeService: StoreService,
                 private readonly productService: ProductService,
                 private readonly cartService: CartService) {}
-    
+                
     //매장 목록
     @Get('store/list')
     async getStoreList(@Res() res:Response):Promise<any> {
@@ -25,14 +25,13 @@ export class StoreController {
                         @Query('uid') uid: number,
                         @Query('storeId') storeId: string): Promise<any> {
         //1.장바구니 정보 가져와서 같은 가게가 아니면 장바구니 삭제 
-        const cartList = await this.cartService.getCartList(uid);
+        let cartList = await this.cartService.getCartList(uid);
         //장바구니에 담긴 상품이 현재 매장 상품이 아닌경우 - 장바구니 전체 삭제 
-
         if(cartList.length > 0 && cartList[0].strId !== storeId) {
            await this.cartService.deleteAllCart(uid);
+           cartList = [];
         }
-        //장바구니 정보 상세(장바구니 상단 표기 숫자)
-        const cartCnt = this.cartService.getCartTotalCnt(cartList);
+        let cartCnt = this.cartService.getCartTotalCnt(cartList);
         //매장상세 정보(상단 매장정보)
         //get_store_info($store_id); //외부 api 사용 ST00005937
         const storeDetail = await this.storeService.getStoreDetail(storeId);
@@ -45,6 +44,9 @@ export class StoreController {
         const productList = await this.productService.getProductList(storeId);
         //매장 운영 정보
        const storeOpenChk = await this.storeService.getStoreOpenChk(storeId, storeDetail);
+
+        //장바구니 정보 상세(장바구니 상단 표기 숫자)
+       
          let body = {
              cartCnt,
              storeDetail,
@@ -79,7 +81,6 @@ export class StoreController {
     async getCategoryItems(@Res() res:Response, 
                         @Query('storeId') storeId: string,
                         @Query('category') itemId: string) {
-        
         //카테고리상품조회
         const productList = await this.productService.getProductList(storeId, itemId);                           
         let body = {

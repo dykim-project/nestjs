@@ -80,6 +80,18 @@ export class PaymentController {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         console.log('resultNicepay:::::::::::');
         console.log('MID::::::::::::::::::::::::::' + config.MID);
+//         AuthResultCode: '0000',
+    //   AuthResultMsg: '정상처리 되었습니다.',
+    //   AuthToken: 'NICETOKN9522F1122228464AC85DE2F3EA61C890',
+    //   PayMethod: 'VBANK',
+    //   MID: 'nicepay00m',
+    //   Moid: '00000001493866',
+    //   Amt: '2000',
+    //   ReqReserved: '2',
+    //   TxTid: 'nicepay00m03012205131410476466',
+    //   NextAppURL: 'https://webapi.nicepay.co.kr/webapi/pay_process.jsp',
+    //   NetCancelURL: 'https://webapi.nicepay.co.kr/webapi/cancel_process.jsp',
+    //   Signature: 'b4ba8106152de2eb71cfe9f4cf5f0c8daaa85788683b48917766841f2f34e2d1'
         console.log(bodyData);
         const now = common.getYYYYMMDDHHMMSS();
         let envalue =  bodyData.AuthToken + config.MID + bodyData.Amt + now +config.MKEY;
@@ -102,11 +114,13 @@ export class PaymentController {
             
             try{
                 const result = await nicepayApproval(bodyData.NextAppURL, requestBody, res);
+                console.log('approval::::::::::::::::::::::::');
+                console.log(result);
                 if (result.status !== 200) {
                    return this.validationError('결제 요청을 실패했습니다. (2001)', res);
                   }
                 //var Signature = JSON.parse(strContents).Signature.toString()
-                switch (result.data.payMethod) {
+                switch (bodyData.PayMethod) {
                     case 'CARD':
                         if (result.data.ResultCode !== '3001') {
                         return this.validationError(result.data.ResultMsg, res);
@@ -142,7 +156,7 @@ export class PaymentController {
                     if (result.data.Signature !== paySignature) {
                         return this.validationError('결제 요청을 실패했습니다. (2002)', res);
                     }
-                    if (result.data.payMethod === 'VBANK') {
+                    if (bodyData.PayMethod === 'VBANK') {
                     } else {
                         //스마트오더 주문 상태 변경 
                          const orderWithPg = await this.paymentService.orderWithPg(result.data);
@@ -176,9 +190,9 @@ export class PaymentController {
                                 })
                             }
                         } else {
-                            //완료후 장바구니 지우기 ??
                             this.paymentService.authUpdate(result.data);
                             this.paymentService.updateOrderStatus( bodyData.Moid, '1001');
+                            this.cartService.deleteAllCart(bodyData.ReqReserved);
                         }
                     }
                     return res.send({

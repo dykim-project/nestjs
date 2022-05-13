@@ -28,14 +28,14 @@ export class CartController {
                         storeId: storeId,
                         userName: userName? userName: '',
                         pushToken:''};
-         await this.cartService.saveUserInfo(cartDto);
+         //await this.cartService.saveUserInfo(cartDto);
  
          const storeDetail = await this.storeService.getStoreDetail(cartDto.storeId);
          //매장 운영 확인
          const storeOpenChk = await this.storeService.getStoreOpenChk(cartDto.storeId ,storeDetail);
          //장바구니 정보
          const cartList = await this.cartService.getCartList(cartDto.uid);
-         const {sumProductQty, sumProductPrice} = await this.cartService.getCartTotalCnt(cartList);
+         const {sumProductQty, sumProductPrice} = this.cartService.getCartTotalCnt(cartList);
          const body = {cartList,
                         storeOpenChk,
                         storeDetail,

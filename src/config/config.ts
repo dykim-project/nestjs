@@ -17,5 +17,8 @@ if(process.env.NODE_ENV === 'prod') {
         JWT_SECRET:'MFVGv2c2iT4yoT!zW9!wksoD',
         JWT_ISSUER: 'ddfactory',
         frontServer:'http://192.168.50.110:3001'
+        
     }
 }
+
+module.exports.channelID = 'CH00002034';// 'CH00002104'다이노스, //CH00002034 한화

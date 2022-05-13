@@ -30,7 +30,14 @@ export class PaymentService {
             //phpsorce - regist_cart 주문서 등록 
             const data = {chnlMbrId: paymentDto.uid, 
                             strId:paymentDto.storeId, 
-
+                            ordrId:paymentDto.orderId,
+                            ordrKindCd:'9ICP', //배달
+                            payPrc: `${paymentDto.totalPrice}`,
+                            totalOrder: `${paymentDto.totalPrice}`,
+                            PayMethod: 'CARD',
+                            pgCd: 'WL',
+                            prePayCd: 'P',
+                            postPaySelectVal:'',
                             ordrKindCdPrefix:'2'}; //ordrKindCdPrefix는 '2'를 고정으로 전달 한다.
         
             let result = await kisServerCon('/api/channel/nonpage/order/getSubmitInfo', data);
@@ -151,7 +158,7 @@ export class PaymentService {
                         payMthdCd: 'PC',
                         PayMethod: 'CARD',
                         pgCd: 'WL',
-                        ordrKindCd:  '2ICP',//선불결제
+                        ordrKindCd:  '9ICP',//배달 ",9ICP배달즉시,9RVP배달예약"
                         payPrc: `${paymentDto.totalPrice}`, 
                         ordrPrc: `${paymentDto.totalPrice}`,
                         prePayCd: 'P',
@@ -231,7 +238,7 @@ export class PaymentService {
 
 
 
-    //스마트 오더 진행..?  
+    //스마트 오더 진행 
     async orderWithPg(authResult: any) {
         try {
             //phpsorce - 'payment_order_with_pg'실행
@@ -244,8 +251,8 @@ export class PaymentService {
             }; 
 
             let result = await kisServerCon('/api/channel/nonpage/extpg/approval', data);
-            console.log('in orderWithPg:::::::::::::::');
-            console.log(result.data);
+            logger.info('in orderWithPg:::::::::::::::');
+            logger.info(result.data);
             if(result.data.success) {
                 if(result.data.rst === 0) {
                     return false;

@@ -1,14 +1,16 @@
 import axios from 'axios';
 import { logger } from 'src/config/winston';
 import { ProcessException } from 'src/exception/process.exception';
+const config  = require('../config/config');
+
 export const kisServerCon = async (url:string, data?: any):Promise<any> => {
     const instance = axios.create({
       });
 
     try {
-        const server = 'https://orderapi.kisvan.co.kr';
+        const server = 'https://orderapi.kisvan.co.kr'; //'http://61.40.211.38:8081'
         data = {
-            chnlId: 'CH00002034',
+            chnlId: config.channelID,
             ...data
         };
         let requestUrl = server + url; 
@@ -17,7 +19,7 @@ export const kisServerCon = async (url:string, data?: any):Promise<any> => {
         const headers = {
             "Accept": "application/json",
             "APP-ID": "hanwhaeagles_order",
-            "CHNL-ID": "CH00002034",
+            "CHNL-ID": config.channelID,
             "CLIENT-ID": "oAAjZOwpRT/xJGHe4gTYr7spTIF9RgfxOhESwOBdln84L68D1PLfeH+hj9lXlmEZ",
             "Authorization": "Bearer a01-c2da3c78-56db-11ea-89eb-005056a1136b"
             };
