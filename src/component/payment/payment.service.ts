@@ -203,7 +203,7 @@ export class PaymentService {
         // MallReserved: '',
         // CardCode: '04',
         // CardName: '삼성',
-        // CardNo: '53664800****4472',
+        // CardNo: '111222***2222',
         // CardQuota: '00',
         // CardInterest: '0',
         // AcquCardCode: '04',

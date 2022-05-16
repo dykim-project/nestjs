@@ -21,8 +21,10 @@ export class OrderhistoryController {
                  console.log(data);
                 //가게 상세정보 조회하기 
                 let storeDetail = await this.storeService.getStoreDetail(data.strId);
+                //상세 주문 정보 검색
+                let orderDetailList = await this.orderHistoryService.getOrderDetail(data.ordrId);
                 //목록에 가게정보 추가
-                data = {...data, storeDetail}
+                data = {...data, storeDetail, orderDetailList}
                 return  data;
             }));
             let body = {ordrList: result,
@@ -40,7 +42,7 @@ export class OrderhistoryController {
             let storeDetail = await this.storeService.getStoreDetail(orderData.storeId);
             const orderKisData = await this.orderHistoryService.getOrderKisData(uid, ordrId);
             //orderDetail정보 db조회
-            const orderDetail = await this.orderHistoryService.getOrderDetail(ordrId);
+            //const orderDetail = await this.orderHistoryService.getOrderDetail(ordrId);
             //매장이름, 매장상세정보, 매장 이미지; 
             //주문내역 조회(매장아이디, 주문금액, 결제 금액, 주문상태)
             //$sql = "select * from ks_order where order_id=%s";
@@ -64,7 +66,7 @@ export class OrderhistoryController {
             let body = {orderData,
                 orderKisData,
                 storeDetail,
-                orderDetail,
+               // orderDetail,
                 statusCode: 200}
             res.json(body);
         }

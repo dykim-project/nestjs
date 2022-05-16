@@ -114,7 +114,8 @@ export class PaymentController {
             
             try{
                 const result = await nicepayApproval(bodyData.NextAppURL, requestBody, res);
-                console.log('approval::::::::::::::::::::::::');
+                logger.info('approval::::::::::::::::::::::::');
+                logger.info(result.data);
                 // data: {
                 //     ResultCode: '4100',
                 //     ResultMsg: '가상계좌 발급 성공',
@@ -181,7 +182,7 @@ export class PaymentController {
 
                     //가상계좌인경우?
                     if (bodyData.PayMethod === 'VBANK') {//가상계좌
-                        //주문목록에 안들어감 가상계좌는 입금완료후 pos에서 호출해줘야해,,
+                        //주문목록에 안들어감 가상계좌는 입금완료후 orderWithPg 호출필요 어떻게?
                         //this.validationError('결제 요청을 실패했습니다. (가상계좌)', res);
                     } else {
                         //신용카드가 아닌경우 정상결제후 임의의 카드번호 입력 하기.
@@ -190,13 +191,12 @@ export class PaymentController {
                             result.data.CardName = bodyData.PayMethod;
                         }
                         //스마트 오더 시작--------------------------------------
-                        console.log('smartorder::::::::::::::::::::::');
-                        console.log(result.data);
+                        logger.info('smartorder::::::::::::::::::::::');
                         //스마트오더 주문 상태 변경 
                          const orderWithPg = await this.paymentService.orderWithPg(result.data);
                         // //실패인경우 결제 취소 
-                        console.log('orderWithPg:::::');
-                        console.log(orderWithPg);
+                        logger.info('orderWithPg:::::');
+                        logger.info(orderWithPg);
                         // orderWithPg.rst == 0
                         if(!orderWithPg ) {
                             try{
@@ -207,7 +207,8 @@ export class PaymentController {
                                     ...requestBody,
                                     ...{SignData: encrypt ,CancelAmt: bodyData.Amt, PartialCancelCode: 0, orderId: bodyData.Moid, CancelMsg:'통신 실패 에러' }
                                 }
-                            console.log('cancelBody::::::::::::::::::::::::::::::');
+                            logger.info('cancelBody::::::::::::::::::::::::::::::');
+                            logger.info(cancelBody);
                             const result =  await nicepayNetcancel(cancelBody);
                             //취소성공 
                             if(result.data.ResultCode === 2001) {
@@ -217,8 +218,8 @@ export class PaymentController {
                                 body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 '); window.location.replace('${config.frontServer}/storeList') </script></html>`
                             })
                             } catch(error) {
-                                console.log('cancel error:::::::::::::::::::::::');
-                                console.log(error);
+                                logger.info('cancel error:::::::::::::::::::::::');
+                                logger.info(error);
                                 return res.send({
                                     body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 '); window.location.replace('${config.frontServer}/storeList') </script></html>`
                                 })

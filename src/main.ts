@@ -6,7 +6,6 @@ import { text } from 'express';
 import { RequestInterceptor } from './interceptor/request.interceotor';
 import { AllExceptionsFilter } from './exception/allCatch.exception';
 import { ValidationPipe } from '@nestjs/common';
-const cors = require("cors");
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 async function bootstrap() {
