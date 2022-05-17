@@ -29,6 +29,13 @@ export const common = {
         const min:string = ("0" + date.getMinutes()).slice(-2);
         const sec:string =  ("0" + date.getSeconds()).slice(-2);
         return year + month + day + hour + min +sec;
+    },
+    getYYMMDD() {
+        const date = new Date();
+        const year:string = date.getFullYear().toString().substr(2,5);
+        const month:string = ("0" + (date.getMonth() + 1)).slice(-2);
+        const day:string = ("0" + date.getDate()).slice(-2);
+        return year + month + day;
     }
     , getSignData(str) {
         var encrypted = CryptoJS.SHA256(str);

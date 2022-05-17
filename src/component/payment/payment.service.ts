@@ -1,17 +1,14 @@
-import { BadRequestException, Injectable, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
+import { BadRequestException, Injectable, InternalServerErrorException, Res, ServiceUnavailableException } from '@nestjs/common';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import axios from 'axios';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { logger } from 'src/config/winston';
 import { PaymentDto } from 'src/dto/paymentDto';
 import { order } from 'src/entity/order.entity';
 import { orderDetail } from 'src/entity/orderDetail.entity';
 import { kisServerCon } from '../../utils/kis.server.connection';
 import { common } from '../../utils/common';
-
-export class AuthResultDto {
-
-}
+const Sequelize = require('sequelize');
 
 @Injectable()
 export class PaymentService {
@@ -20,7 +17,10 @@ export class PaymentService {
         private orderModel: typeof order,
         
         @InjectModel(orderDetail)
-        private orderDetailModel: typeof orderDetail
+        private orderDetailModel: typeof orderDetail,
+
+        @InjectConnection()
+        private sequelize: typeof Sequelize,
     ) {}
     //ajax_order_regist.php 참고
     
@@ -72,7 +72,8 @@ export class PaymentService {
                 uid: paymentDto.uid, 
                 userId: paymentDto.userId,//'temp_Id',
                 userName: paymentDto.name,// 'name',
-                osType: paymentDto.osType
+                osType: paymentDto.osType,
+                payType:paymentDto.payType
             }
             const insertResult = await this.orderModel.create(saveData);
             paymentDto.orderId = result.ordrId;
@@ -132,12 +133,12 @@ export class PaymentService {
             });
             //주문tb 상품 총가격 & 갯수 update
             const result = await this.orderModel.update(
-                {totalPrice: totalPrice,
+                {totalPrice: totalPrice - paymentDto.usedPoint - paymentDto.couponDiscount,
                     sumProductQty: totalCnt
                 },
                 {where : {orderId: paymentDto.orderId} }
             );
-            paymentDto.totalPrice = totalPrice;
+            paymentDto.totalPrice = totalPrice - paymentDto.usedPoint - paymentDto.couponDiscount;
             paymentDto.sumProductQty =  totalCnt;
             paymentDto.goodsCount = goodsCount;
             return paymentDto;
@@ -169,7 +170,6 @@ export class PaymentService {
                         discPrc: 0 
                     };
 
-                    
         let result = await kisServerCon('/api/channel/nonpage/order/insert', data);
         console.log('orderInsert::::::::::::::::');
         console.log(result)
@@ -185,43 +185,6 @@ export class PaymentService {
 
     //결제 결과 업데이트
     async authUpdate(authData) {
-        // ResultCode: '3001',
-        // ResultMsg: '카드 결제 성공',
-        // Amt: '000000009000',
-        // MID: 'nicepay00m',
-        // Moid: '00000001492630',
-        // BuyerEmail: 'yeg1511@naver.com',
-        // BuyerTel: '11111111111',
-        // BuyerName: '양일권',
-        // GoodsName: '더치맥주 2개',
-        // TID: 'nicepay00m01012205101857514862',
-        // AuthCode: '03182126',
-        // AuthDate: '220510185753',
-        // PayMethod: 'CARD',
-        // CartData: '',
-        // Signature: '27d0ede6fca981b0f8a3e319ea803679611827f674a180de58ac159a1a30731a',
-        // MallReserved: '',
-        // CardCode: '04',
-        // CardName: '삼성',
-        // CardNo: '111222***2222',
-        // CardQuota: '00',
-        // CardInterest: '0',
-        // AcquCardCode: '04',
-        // AcquCardName: '삼성',
-        // CardCl: '0',
-        // CcPartCl: '1',
-        // CouponAmt: '000000000000',
-        // CouponMinAmt: '000000000000',
-        // PointAppAmt: '000000000000',
-        // ClickpayCl: '',
-        // MultiCl: '',
-        // MultiCardAcquAmt: '',
-        // MultiPointAmt: '',
-        // MultiCouponAmt: '',
-        // RcptType: '',
-        // RcptTID: '',
-        // RcptAuthCode: '',
-        // CardType: '01'
         const result = await this.orderModel.update(
             {mid: authData.MID,
              tid: authData.TID,
@@ -232,17 +195,16 @@ export class PaymentService {
              authCode: authData.AuthCode
 
             },
-            {where : {orderId: authData.Moid} }
+            {where : {orderId: (authData.Moid).replace('F','')} }
         );
     }
-
 
 
     //스마트 오더 진행 
     async orderWithPg(authResult: any) {
         try {
             //phpsorce - 'payment_order_with_pg'실행
-            const data = {ordrId: authResult.Moid, 
+            const data = {ordrId: (authResult.Moid).replace('F', ''), 
                 pgMID:authResult.MID, 
                 pgTrId:authResult.TID,
                 pgAuthNo: authResult.AuthCode,
@@ -272,16 +234,12 @@ export class PaymentService {
 
     //결제상태 업데이트
     async updateOrderStatus(orderId: string, status: string) {
-        //$sql = "update ks_order set ".
-        //"status= status".
-        //"where order_id='".$orderId."'";
         const result = await this.orderModel.update(
             {
               status: status,
             },
-            { where: { orderId: orderId } }
+            { where: { orderId: orderId.replace('F','') } }
           );
-        console.log(result);
     }
 
     //망취소
@@ -295,33 +253,39 @@ export class PaymentService {
         }
     }
 
-    //결제 취소 cancelResult_utf.php
-    async cancelPayment() {
-        try{
-            //cancelResult_utf.php참고  url 호출
-            const result = await this.cancelAjax();
-            //결과  $response['ResultCode'] != '2001' <-실패상태
-            if (result.resultCode != '2001') {
-                //front - 결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다
-                logger.error(`[payment.cancelPayment] resultCode: ${result.resultCode}`);
-                logger.error(result.resultMsg);
-                throw new InternalServerErrorException('PAYMENT_FAIL');
-            } else {
-              //결제 취소 성공시 상태 변경
-              await this.updateOrderStatus('', 'EC9999'); 
-            }
-        } catch(error) {
-            //front - 결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다
-            //'ResultCode' => '9999',
-			//'ResultMsg' => '통신실패'
-            logger.error(['payment.cancelPayment']);
-            throw new InternalServerErrorException('PAYMENT_FAIL');
+    async pointAndCoupon(paymentDto: PaymentDto, @Res() res: Response) {
+          if (paymentDto.usedPoint > 0 && paymentDto.userCouponIdx != null) {
+            return res.json({statusCode:204, resultMsg: '포인트와 쿠폰을 함께 사용할 수 없습니다.'});
+        }
+        if ((paymentDto.usedPoint > 0 && paymentDto.usedPoint < 1000) || paymentDto.usedPoint % 100 > 0) {
+          return res.json({statusCode:204, resultMsg: '포인트 사용은 최소 1000P 이상, 100P 단위로 사용이 가능합니다.'})
         }
 
-    }
-
-    async cancelAjax() {
-        return {resultCode:'', resultMsg:''}
+        let couponDiscount = 0;
+        let couponIdx;
+        if (paymentDto.userCouponIdx) {
+            const [coupon] = await this.sequelize.query(`SELECT userCoupon.couponIdx, 
+            coupon.discountType, coupon.discountAmount, coupon.maxDiscount
+             FROM userCoupon JOIN coupon ON userCoupon.couponIdx=coupon.idx  WHERE userCoupon.idx=${paymentDto.userCouponIdx} AND userCoupon.isUsed='N'`,
+             { type: this.sequelize.QueryTypes.SELECT});
+  
+       if (coupon.length === 0) {
+            return res.json({statusCode:204, resultMsg: '잘못된 접근입니다.'});
+       }
+  
+        couponIdx = coupon.couponIdx;
+  
+        if (coupon.discountType === 1) {
+            couponDiscount = paymentDto.totalPrice * Number(coupon.discountAmount) / 100;
+        if (coupon.maxDiscount) {
+           couponDiscount = Math.min(couponDiscount, coupon.maxDiscount);
+         }
+       } else {
+         couponDiscount = coupon.discountAmount;
+         paymentDto.couponDiscount = couponDiscount;
+       }
+     }   
+     return couponDiscount;
     }
 
 

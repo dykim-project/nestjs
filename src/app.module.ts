@@ -9,6 +9,7 @@ import { StoreModule } from './component/store/store.module';
 import { PaymentModule } from './component/payment/payment.module';
 import { CartModule } from './component/cart/cart.module';
 import { OrderhistoryModule } from './component/orderhistory/orderhistory.module';
+import { NcpayModule } from './component/ncpay/ncpay.module';
 const { accountdb, mddb }= require('./config/db.config');
 @Module({
   imports: [
@@ -25,7 +26,8 @@ const { accountdb, mddb }= require('./config/db.config');
   StoreModule,
   PaymentModule,
   CartModule,
-  OrderhistoryModule,],
+  OrderhistoryModule,
+  NcpayModule],
   controllers: [AppController],
   providers: [AppService, {
       provide: APP_FILTER,

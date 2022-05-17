@@ -38,7 +38,7 @@ export class TokenMiddleware implements NestMiddleware {
     res.set({'Access-Control-Allow-Credentials' : 'true'});
     res.set({'ccess-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS'})
     res.set({'Access-Control-Allow-Headers' : 'X-PINGOTHER, Content-Type'})
-    if(req.url == '/payment/resultNicePay') {
+    if(req.url == '/payment/resultNicePay' || req.url.includes('/ncpay')) {
      return next();
     }
     try {

@@ -60,7 +60,6 @@ export class CartController {
                  return res.json({statusCode: 200, resultMsg: 'NOT_OPEN'});
              }
          }
- 
          //아이템 품절 확인 
          const productStockChk = await this.productService.getProductStockChk(addCartDto.storeId, addCartDto.itemId); 
          if(productStockChk) {

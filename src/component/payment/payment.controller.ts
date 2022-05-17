@@ -8,7 +8,6 @@ import { common } from '../../utils/common';
 import { StoreService } from 'src/component/store/store.service';
 import { nicepayApproval } from 'src/utils/nicepay.approval';
 import { nicepayNetcancel } from 'src/utils/nicepay.netcancel';
-import { MESSAGES } from '@nestjs/core/constants';
 import { logger } from 'src/config/winston';
 const config = require('../../config/config');
 
@@ -22,7 +21,7 @@ export class PaymentController {
     @Post()
     async payment(@Req() req: Request, @Res() res: Response, @Body() paymentDto: PaymentDto ){
         //최종 open 확인 
-
+        try {
         const storeOpenChk = await this.storeService.getStoreOpenChk(paymentDto.storeId);
         if(!storeOpenChk) {
             return res.json({ststusCode:200, resultMsg: 'NOT_OPEN'});
@@ -37,6 +36,7 @@ export class PaymentController {
                 return res.json({ststusCode:200, resultMsg: 'FORBIDDEN_MENU'})
             }
         }); 
+        await this.paymentService.pointAndCoupon(paymentDto, res);
         //2. 외부api regist_cart로 주문서 등록 
         await this.paymentService.registCart(paymentDto);
         //4.주문상세tb 저장 & 주문tb 총금액 update 
@@ -63,6 +63,10 @@ export class PaymentController {
         }
         logger.info('make payment::::');
         return res.json({statusCode: 200 , ...data});
+        } catch(error) {
+            logger.info(error);
+            return res.json({statusCode: 502 ,  resultMsg:'server error'});
+        }
     }
 
 
@@ -78,20 +82,7 @@ export class PaymentController {
     @Post('resultNicePay') 
     async getResultNicePay(@Req() req: Request, @Res() res: Response, @Body() bodyData: any){
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        console.log('resultNicepay:::::::::::');
-        console.log('MID::::::::::::::::::::::::::' + config.MID);
-//         AuthResultCode: '0000',
-    //   AuthResultMsg: '정상처리 되었습니다.',
-    //   AuthToken: 'NICETOKN9522F1122228464AC85DE2F3EA61C890',
-    //   PayMethod: 'VBANK',
-    //   MID: 'nicepay00m',
-    //   Moid: '00000001493866',
-    //   Amt: '2000',
-    //   ReqReserved: '2',
-    //   TxTid: 'nicepay00m03012205131410476466',
-    //   NextAppURL: 'https://webapi.nicepay.co.kr/webapi/pay_process.jsp',
-    //   NetCancelURL: 'https://webapi.nicepay.co.kr/webapi/cancel_process.jsp',
-    //   Signature: 'b4ba8106152de2eb71cfe9f4cf5f0c8daaa85788683b48917766841f2f34e2d1'
+        console.log('resultNicePay::::::::::::::::::::::::::');
         console.log(bodyData);
         const now = common.getYYYYMMDDHHMMSS();
         let envalue =  bodyData.AuthToken + config.MID + bodyData.Amt + now +config.MKEY;
@@ -116,124 +107,57 @@ export class PaymentController {
                 const result = await nicepayApproval(bodyData.NextAppURL, requestBody, res);
                 logger.info('approval::::::::::::::::::::::::');
                 logger.info(result.data);
-                // data: {
-                //     ResultCode: '4100',
-                //     ResultMsg: '가상계좌 발급 성공',
-                //     Amt: '000000002000',
-                //     MID: 'nicepay00m',
-                //     Moid: '00000001493940',
-                //     BuyerEmail: 'test@abc.com',
-                //     BuyerTel: '22222222222',
-                //     BuyerName: '1',
-                //     GoodsName: '테스트메뉴 2개',
-                //     TID: 'nicepay00m03012205131622392090',
-                //     AuthCode: '',
-                //     AuthDate: '220513162243',
-                //     PayMethod: 'VBANK',
-                //     CartData: '',
-                //     Signature: '93bccb513444c978d6c16c75c7ab16a4980a7dc99389b256bb530cd15edf586d',
-                //     MallReserved: '',
-                //     VbankBankCode: '020',
-                //     VbankBankName: '우리은행',
-                //     VbankNum: '62135617518645',
-                //     VbankExpDate: '20220523',
-                //     VbankExpTime: '235959'
-                //   }
                 if (result.status !== 200) {
                    return this.validationError('결제 요청을 실패했습니다. (2001)', res);
                   }
-                //var Signature = JSON.parse(strContents).Signature.toString()
-                switch (bodyData.PayMethod) {
-                    case 'CARD':
-                        if (result.data.ResultCode !== '3001') {
-                        return this.validationError(result.data.ResultMsg, res);
-                        }
-                        break;
-                    case 'BANK':
-                        if (result.data.ResultCode !== '4000') {
-                        return this.validationError(result.data.ResultMsg, res);
-                        }
-                        break;
-                    case 'CELLPHONE':
-                        if (result.data.ResultCode !== 'A000') {
-                            return this.validationError(result.data.ResultMsg, res);
-                        }
-                        break;
-                    case 'VBANK':
-                        if (result.data.ResultCode !== '4100') {
-                            return this.validationError(result.data.ResultMsg, res);
-                        }
-                        break;
-                    case 'SSG_BANK':
-                        if (result.data.ResultCode !== '0000') {
-                            return this.validationError(result.data.ResultMsg, res);
-                        }
-                        break;
-                    case 'CMS_BANK':
-                        if (result.data.ResultCode !== '0000') {
-                            return this.validationError(result.data.ResultMsg, res);
-                        }
-                        break;
-                    }
                     const paySignature = common.getSignData(`${result.data.TID}${result.data.MID}${result.data.Amt}${config.MKEY}`).toString();
                     if (result.data.Signature !== paySignature) {
                         return this.validationError('결제 요청을 실패했습니다. (2002)', res);
                     }
 
-                    //가상계좌인경우?
-                    if (bodyData.PayMethod === 'VBANK') {//가상계좌
-                        //주문목록에 안들어감 가상계좌는 입금완료후 orderWithPg 호출필요 어떻게?
-                        //this.validationError('결제 요청을 실패했습니다. (가상계좌)', res);
-                    } else {
-                        //신용카드가 아닌경우 정상결제후 임의의 카드번호 입력 하기.
-                        if(bodyData.PayMethod !== 'CARD') {
-                            result.data.CardCode = bodyData.PayMethod;
-                            result.data.CardName = bodyData.PayMethod;
+                //스마트 오더 시작--------------------------------------
+                logger.info('smartorder::::::::::::::::::::::');
+                //스마트오더 주문 상태 변경 
+                    const orderWithPg = await this.paymentService.orderWithPg(result.data);
+                // //실패인경우 결제 취소 
+                logger.info('orderWithPg:::::');
+                logger.info(orderWithPg);
+                // orderWithPg.rst == 0
+                if(!orderWithPg ) {
+                    try{
+                        let nowTime = common.getYYYYMMDDHHMMSS();
+                        let envalue = config.MID + bodyData.Amt + nowTime +config.MKEY;
+                        let encrypt = common.getSignData(envalue);
+                        let cancelBody = {
+                            ...requestBody,
+                            ...{SignData: encrypt ,CancelAmt: bodyData.Amt, PartialCancelCode: 0, orderId: bodyData.Moid, CancelMsg:'통신 실패 에러' }
                         }
-                        //스마트 오더 시작--------------------------------------
-                        logger.info('smartorder::::::::::::::::::::::');
-                        //스마트오더 주문 상태 변경 
-                         const orderWithPg = await this.paymentService.orderWithPg(result.data);
-                        // //실패인경우 결제 취소 
-                        logger.info('orderWithPg:::::');
-                        logger.info(orderWithPg);
-                        // orderWithPg.rst == 0
-                        if(!orderWithPg ) {
-                            try{
-                                let nowTime = common.getYYYYMMDDHHMMSS();
-                                let envalue = config.MID + bodyData.Amt + nowTime +config.MKEY;
-                                let encrypt = common.getSignData(envalue);
-                                let cancelBody = {
-                                    ...requestBody,
-                                    ...{SignData: encrypt ,CancelAmt: bodyData.Amt, PartialCancelCode: 0, orderId: bodyData.Moid, CancelMsg:'통신 실패 에러' }
-                                }
-                            logger.info('cancelBody::::::::::::::::::::::::::::::');
-                            logger.info(cancelBody);
-                            const result =  await nicepayNetcancel(cancelBody);
-                            //취소성공 
-                            if(result.data.ResultCode === 2001) {
-                                await this.paymentService.updateOrderStatus(cancelBody.orderId, 'EC9999');
-                            }
-                            return res.send({
-                                body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 '); window.location.replace('${config.frontServer}/storeList') </script></html>`
-                            })
-                            } catch(error) {
-                                logger.info('cancel error:::::::::::::::::::::::');
-                                logger.info(error);
-                                return res.send({
-                                    body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 '); window.location.replace('${config.frontServer}/storeList') </script></html>`
-                                })
-                            }
-                        } else {
-                            this.paymentService.authUpdate(result.data);
-                            this.paymentService.updateOrderStatus( bodyData.Moid, '1001');
-                            this.cartService.deleteAllCart(bodyData.ReqReserved);
+                        logger.info('cancelBody::::::::::::::::::::::::::::::');
+                        logger.info(cancelBody);
+                        const result =  await nicepayNetcancel(cancelBody);
+                        //취소성공 
+                        if(result.data.ResultCode === 2001) {
+                            await this.paymentService.updateOrderStatus(cancelBody.orderId, 'EC9999');
                         }
+                        return res.send({
+                            body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 '); window.location.replace('${config.frontServer}/storeList') </script></html>`
+                        })
+                    } catch(error) {
+                        logger.info('cancel error:::::::::::::::::::::::');
+                        logger.info(error);
+                        return res.send({
+                            body: `<html><script>alert('결제 중 에러가 발생했습니다.\n메인화면으로 이동합니다 '); window.location.replace('${config.frontServer}/storeList') </script></html>`
+                        })
                     }
-                    //스마트오더 끝-------------------------
-                    return res.send({
-                        body: `<html><script>window.location.replace('${config.frontServer}/complete') </script></html>`
-                    })
+                } else {
+                    this.paymentService.authUpdate(result.data);
+                    this.paymentService.updateOrderStatus( bodyData.Moid, '1001');
+                    this.cartService.deleteAllCart(bodyData.ReqReserved);
+                }
+            //스마트오더 끝-------------------------
+            return res.send({
+                body: `<html><script>window.location.replace('${config.frontServer}/complete') </script></html>`
+            })
                     
             } catch (error) {
                 return this.validationError('결제 요청을 실패했습니다. (2002)', res);

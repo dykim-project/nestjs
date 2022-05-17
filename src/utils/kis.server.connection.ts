@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Response } from 'express';
 import { logger } from 'src/config/winston';
 import { ProcessException } from 'src/exception/process.exception';
 const config  = require('../config/config');
@@ -33,7 +34,7 @@ export const kisServerCon = async (url:string, data?: any):Promise<any> => {
         logger.error(`[KIS SERVER ERROR] ${error.response?.data?.errorMsg}`);
         console.log(error.response);
         console.log(error.response.data.failStack);
-        throw new ProcessException(error, "kisserver ");
+      //  throw new ProcessException(error, "kisserver ");
     } 
     
 }

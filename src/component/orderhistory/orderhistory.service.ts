@@ -58,7 +58,7 @@ export class OrderhistoryService {
 
     //주문정보
     async getOrderDetail(ordrId: string) {
-        const result = await this.orderDetailModel.findOne(
+        const result = await this.orderDetailModel.findAll(
         { where: { orderId: ordrId }});
         return result;
     }
