@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Res, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ConsoleLogger, Injectable, InternalServerErrorException, Res, ServiceUnavailableException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import axios from 'axios';
 import { Request, Response } from 'express';
@@ -19,8 +19,11 @@ export class PaymentService {
         @InjectModel(orderDetail)
         private orderDetailModel: typeof orderDetail,
 
-        @InjectConnection()
+        @InjectConnection('accountdb')
         private sequelize: typeof Sequelize,
+
+        @InjectConnection()
+        private sequelizeMd: typeof Sequelize,
     ) {}
     //ajax_order_regist.php 참고
     
@@ -41,6 +44,8 @@ export class PaymentService {
                             ordrKindCdPrefix:'2'}; //ordrKindCdPrefix는 '2'를 고정으로 전달 한다.
         
             let result = await kisServerCon('/api/channel/nonpage/order/getSubmitInfo', data);
+            console.log('registCart::::');
+            console.log(result);
             if(result.data.success) {
                 result = result.data.data;
             } else {
@@ -88,10 +93,10 @@ export class PaymentService {
     //주문상세tb insert & 주문tb update
     async orderDetailSave(basket: any[], paymentDto: PaymentDto) {
         try {
-            let totalPrice = 0;
-            let totalCnt = 0;
+            let totalPrice:number = 0;
+            let totalCnt:number = 0;
             let goodsCount:number = 0;
-            basket.forEach(async data => {
+            await basket.forEach(async data => {
                 let itemId = "";
                 let itemName = "";
                 let itemQty = 0;
@@ -128,17 +133,14 @@ export class PaymentService {
                 }
                 await this.orderDetailModel.create(inputData);
                 //총금액 & 총갯수 count 
+                console.log('totalCnt::::');
+                console.log(Number(itemQty));
                 totalCnt += Number(itemQty);
+                console.log(totalCnt);
                 totalPrice += (Number(itemQty) * Number(itemPrice));
             });
-            //주문tb 상품 총가격 & 갯수 update
-            const result = await this.orderModel.update(
-                {totalPrice: totalPrice - paymentDto.usedPoint - paymentDto.couponDiscount,
-                    sumProductQty: totalCnt
-                },
-                {where : {orderId: paymentDto.orderId} }
-            );
-            paymentDto.totalPrice = totalPrice - paymentDto.usedPoint - paymentDto.couponDiscount;
+            await this.updateOrder(paymentDto);
+            paymentDto.totalPrice = totalPrice;
             paymentDto.sumProductQty =  totalCnt;
             paymentDto.goodsCount = goodsCount;
             return paymentDto;
@@ -147,6 +149,21 @@ export class PaymentService {
             //front - 주문서 등록중 오류가 발생했습니다
             common.errorException(502, 'REGIST_ORDER_BILL_FAIL', error);
         }
+    }
+
+    async updateOrder(paymentDto: PaymentDto) {
+          //주문tb 상품 총가격 & 갯수 update
+          const result = await this.orderModel.update(
+            {totalPrice: paymentDto.totalPrice,
+                sumProductQty: paymentDto.sumProductQty,
+                couponId: paymentDto.userCouponIdx,
+                couponTitle: paymentDto.couponName,
+                payPrice: paymentDto.calAmt,
+                discountPrice:paymentDto.discountAmt,
+                pointPrice: paymentDto.usedPoint
+            },
+            {where : {orderId: paymentDto.orderId} }
+        );
     }
 
     //주문 등록 phpsource - regist_order로 주문등록
@@ -160,8 +177,8 @@ export class PaymentService {
                         PayMethod: 'CARD',
                         pgCd: 'WL',
                         ordrKindCd:  '9ICP',//배달 ",9ICP배달즉시,9RVP배달예약"
-                        payPrc: `${paymentDto.totalPrice}`, 
-                        ordrPrc: `${paymentDto.totalPrice}`,
+                        payPrc: `${paymentDto.calAmt}`, 
+                        ordrPrc: `${paymentDto.calAmt}`,
                         prePayCd: 'P',
                         postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
                         orderCnct: paymentDto.userTel,
@@ -172,8 +189,8 @@ export class PaymentService {
 
         let result = await kisServerCon('/api/channel/nonpage/order/insert', data);
         console.log('orderInsert::::::::::::::::');
-        console.log(result)
-        if(result.data.success) {
+        console.log(result.data)
+        if(result && result.data.success) {
             result = result.data.data;
         } else {
             //front- 주문 등록중 오류가 발생했습니다
@@ -185,6 +202,10 @@ export class PaymentService {
 
     //결제 결과 업데이트
     async authUpdate(authData) {
+        logger.info('authupdate::::::::::::');
+        logger.info(authData);
+        let orderId = authData.orderId ?authData.orderId : authData.Moid.replace('F','');
+        logger.info('orderId :::' + orderId);
         const result = await this.orderModel.update(
             {mid: authData.MID,
              tid: authData.TID,
@@ -195,7 +216,7 @@ export class PaymentService {
              authCode: authData.AuthCode
 
             },
-            {where : {orderId: (authData.Moid).replace('F','')} }
+            {where : {orderId: orderId} }
         );
     }
 
@@ -211,7 +232,8 @@ export class PaymentService {
                 cardIssueCorpNo: authResult.CardCode,
                 cardIssueCorpNm: authResult.CardName
             }; 
-
+            console.log('order with pg data:::::::');
+            console.log(data);
             let result = await kisServerCon('/api/channel/nonpage/extpg/approval', data);
             logger.info('in orderWithPg:::::::::::::::');
             logger.info(result.data);
@@ -254,7 +276,7 @@ export class PaymentService {
     }
 
     async pointAndCoupon(paymentDto: PaymentDto, @Res() res: Response) {
-          if (paymentDto.usedPoint > 0 && paymentDto.userCouponIdx != null) {
+          if (paymentDto.usedPoint > 0 && paymentDto.userCouponIdx > 0) {
             return res.json({statusCode:204, resultMsg: '포인트와 쿠폰을 함께 사용할 수 없습니다.'});
         }
         if ((paymentDto.usedPoint > 0 && paymentDto.usedPoint < 1000) || paymentDto.usedPoint % 100 > 0) {
@@ -263,9 +285,10 @@ export class PaymentService {
 
         let couponDiscount = 0;
         let couponIdx;
-        if (paymentDto.userCouponIdx) {
+        if (paymentDto.userCouponIdx > 0) {
             const [coupon] = await this.sequelize.query(`SELECT userCoupon.couponIdx, 
-            coupon.discountType, coupon.discountAmount, coupon.maxDiscount
+            coupon.discountType, coupon.discountAmount, coupon.maxDiscount,
+            coupon.couponName
              FROM userCoupon JOIN coupon ON userCoupon.couponIdx=coupon.idx  WHERE userCoupon.idx=${paymentDto.userCouponIdx} AND userCoupon.isUsed='N'`,
              { type: this.sequelize.QueryTypes.SELECT});
   
@@ -282,13 +305,61 @@ export class PaymentService {
          }
        } else {
          couponDiscount = coupon.discountAmount;
-         paymentDto.couponDiscount = couponDiscount;
+         
        }
+       if(paymentDto.totalPrice <couponDiscount ) {
+           couponDiscount = paymentDto.totalPrice;
+       }
+       paymentDto.couponDiscount = couponDiscount;
+       paymentDto.couponName = coupon.couponName;
      }   
      return couponDiscount;
     }
 
+    //쿠폰 히스토리저장, 사용처리  
+    async saveCouponHistory(userCouponIdx: number, orderId: string) {
+        try {
+            const [userCoupon] = await this.sequelize.query(`SELECT userIdx, couponIdx, coupon.couponName, coupon.discountType, coupon.maxDiscount
+                FROM userCoupon join coupon  on userCoupon.couponIdx = coupon.idx WHERE  userCoupon.idx=${userCouponIdx}`,
+                { type: this.sequelize.QueryTypes.SELECT});
 
-    
+
+            await this.sequelize.query(`INSERT INTO userCouponHistory
+                                    (userIdx, couponIdx, userCouponIdx, shopCode, products, remark, regDatetime)
+                                    VALUES(${userCoupon.userIdx}, ${userCoupon.couponIdx}, ${userCouponIdx}, '', '${orderId}', '스마트오더 쿠폰 사용[주문번호:${orderId}]', CURRENT_TIMESTAMP);`,
+                                    { type: this.sequelize.QueryTypes.INSERT});
+            await this.sequelize.query(`UPDATE userCoupon set isUsed='Y' WHERE  idx=${userCouponIdx}`,
+            { type: this.sequelize.QueryTypes.UPDATE}); 
+
+            return true;
+        } catch (error) { 
+            logger.error('saveCouponHistory');
+            logger.error(error);
+            return false;
+        }
+    }
+
+    //포인트 차감 히스토리 저장 
+    async savePointHistory(pointData:{
+        orderId: string,
+        point: number,
+        uid: number
+    }) {
+        try {
+        console.log('pointDara:::');
+        console.log(pointData);
+        const insertResult = await this.sequelize.query(`INSERT INTO userPointHistory
+        (userIdx, pointKind, pointRef, description, point, regDatetime, expireYear, remark, isCanceled, shopCode)
+        VALUES(${pointData.uid}, '1001', '', '스마트오더 포인트 사용[주문번호:${pointData.orderId}]', -${pointData.point}, CURRENT_TIMESTAMP, 0, '포인트 사용', 0, '');`);
+        const update =  await this.sequelize.query(`UPDATE user set point=point-${pointData.point} WHERE  idx=${pointData.uid}`,
+        { type: this.sequelize.QueryTypes.UPDATE}); 
+            return true;
+        } catch(error) {
+            logger.error('savePointHistory');
+            logger.error(error);
+            return false;
+        }
+    }
+
 }
 

@@ -1,20 +1,17 @@
 
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/sequelize";
+import { InjectConnection, InjectModel } from "@nestjs/sequelize";
 import { logger } from "src/config/winston";
 import { CartDto } from "src/dto/cartDto";
-import { Basket } from "src/entity/basket.entity";
-import { userInfo } from "src/entity/userInfo.entity";
 import { kisServerCon } from '../../utils/kis.server.connection';
 import { common } from '../../utils/common';
 import { AddCartDto } from "src/dto/addCartDto";
-import { isNotEmpty } from "class-validator";
-
+const Sequelize = require('sequelize');
 @Injectable()
 export class CartService {
     constructor(
-       // @InjectModel(userInfo, 'accountdb')   
-       // private userInfoModel: typeof userInfo
+        @InjectConnection('accountdb')   
+        private sequelize: typeof Sequelize,
     ) {}
     //장바구니 등록
     //return 갯수, 총금액
@@ -125,5 +122,23 @@ export class CartService {
         }
         return result;
     } 
+
+    //쿠폰 & 포인트 정보
+    async getCouponPoint(uid:number) {
+        const [userInfo] = await this.sequelize.query(`SELECT name, phone, email, point FROM user WHERE idx =${uid}`, { type: this.sequelize.QueryTypes.SELECT});
+        const [coupons] = await this.sequelize.query(`SELECT userCoupon.idx, coupon.couponName, coupon.couponDesc, coupon.discountType, coupon.discountAmount, coupon.maxDiscount
+        FROM userCoupon
+        JOIN coupon ON userCoupon.couponIdx=coupon.idx
+        WHERE userCoupon.userIdx=${uid} AND userCoupon.isUsed='N' AND coupon.usableOffline=1 AND coupon.startDate<=Date(NOW()) AND coupon.endDate>=DATE(NOW())`);
+        return {point:userInfo.point, coupons}
+    }
+
+    //카드목록
+    async getCardList(uid:number) {
+        // NC 다이노스 페이
+        const [cardList] = await this.sequelize.query(`SELECT id, cardNo, cardName FROM ncPay WHERE userIdx =${uid}`);
+                
+        return cardList
+    }
     
 }

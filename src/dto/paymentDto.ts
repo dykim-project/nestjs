@@ -15,7 +15,12 @@ export class PaymentDto extends CommonDto {
     name: string;
     goodsCount: number = 0;
     usedPoint: number =0;
-    userCouponIdx: string = '';
+    userCouponIdx: number;
     couponDiscount: number = 0;
     payType: string = ''; //NCPAY, NICEPAY
+    pwd: string = '';
+    cardId: string = '';
+    calAmt: number = 0;
+    couponName: string = '';
+    discountAmt: number = 0;
 }

@@ -20,7 +20,8 @@ export class CartController {
      async cartList(@Res() res:Response, 
                     @Query('uid') uid: number,
                     @Query('storeId') storeId: string,
-                    @Query('userName') userName: string) {
+                    @Query('userName') userName: string,
+                    @Query('payType') payType: string) {
         try {
          //장바구니 화면으로 진입했을때-> 사용자 정보 저장
          //uid, user_name, push_toke
@@ -36,11 +37,21 @@ export class CartController {
          //장바구니 정보
          const cartList = await this.cartService.getCartList(cartDto.uid);
          const {sumProductQty, sumProductPrice} = this.cartService.getCartTotalCnt(cartList);
+
+         //주문화면일때 쿠폰, 포인트 조회
+         let couponPoint = {};
+         let cardList = null;
+         if(payType === 'ORDER') {
+            couponPoint = await this.cartService.getCouponPoint(uid);
+            cardList = await this.cartService.getCardList(uid);
+         }
          const body = {cartList,
                         storeOpenChk,
                         storeDetail,
                         sumProductQty,
                         sumProductPrice,
+                        ...couponPoint,
+                        cardList,
                         statusCode: 200};
         return res.json(body);
         } catch(error) {

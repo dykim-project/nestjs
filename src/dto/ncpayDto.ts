@@ -8,6 +8,9 @@ export class NcpayDto {
     userTel: string;
     GoodsName: string;
     amt: number; //결제 금액
-    payPwd: string;
+    //payPwd: string;
     uid: number;
+    couponIdx: number;
+    point: number;
+    storeId: string;
 }

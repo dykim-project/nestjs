@@ -80,6 +80,7 @@ export class TokenMiddleware implements NestMiddleware {
       logger.warn(error);
       logger.warn('[Token middleware] parsing error');
       return res.json({statusCode:401, message:'token'});
+      next();
     }
       next();
   }

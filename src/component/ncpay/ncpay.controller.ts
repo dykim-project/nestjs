@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { NcpayDto } from 'src/dto/ncPayDto';
 import { NcpayService } from './ncpay.service';
@@ -7,8 +7,8 @@ export class NcpayController {
   constructor(private readonly ncpayService: NcpayService) {}
 
   @Get()
-  async getNcpay(@Res() res: Response) {
-    let result = await this.ncpayService.getNcPay('2');
+  async getNcpay(@Res() res: Response, @Query('uid') uid: number) {
+    let result = await this.ncpayService.getNcPay(uid);
     res.json(result);
   }
 
@@ -18,7 +18,8 @@ export class NcpayController {
   }
 
   @Post('/cancel') 
-  async payNcpayCancel( @Res() res: Response,  @Body() ncpayDto: NcpayDto) {
+  async payNcpayCancel() {
     let result = await this.ncpayService.cancelNcpay();
   }
+
 }
