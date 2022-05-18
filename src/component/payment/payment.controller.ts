@@ -145,7 +145,8 @@ export class PaymentController {
                 if(paymentDto.usedPoint > 0 ) {
                     let pointData = {orderId,
                                     point: paymentDto.usedPoint,
-                                    uid: paymentDto.uid};
+                                    uid: paymentDto.uid, 
+                                    amt: paymentDto.calAmt};
                     this.paymentService.savePointHistory(pointData);
                 } else if(paymentDto.couponDiscount > 0) {
                     this.paymentService.saveCouponHistory(paymentDto.userCouponIdx, paymentDto.orderId);
@@ -240,9 +241,18 @@ export class PaymentController {
                     if(resultArr[2] > 0) {
                         let pointData = {orderId,
                                         point: resultArr[2],
-                                        uid: resultArr[0]}
+                                        uid: resultArr[0],
+                                        amt: bodyData.Amt}
                         this.paymentService.savePointHistory(pointData);
                     }
+                    //적립 
+                    const savedPoint = Number(bodyData.Amt) * 0.01; //적립 포인트 
+                    let pointData = {
+                    uid: resultArr[0],
+                    orderId: orderId,
+                    point: savedPoint
+                    };
+        this.paymentService.savePointHistory(pointData);
                 } catch(error) { 
                     logger.error('update coupon point');
                     logger.error(error);

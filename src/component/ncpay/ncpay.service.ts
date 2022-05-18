@@ -146,6 +146,14 @@ export class NcpayService {
         await this.paymentService.authUpdate(response.data);
         await this.paymentService.updateOrderStatus(response.data.Moid, '1001');
         await this.cartService.deleteAllCart(ncpayDto.uid);
+        //적립
+        const savedPoint = Number(ncpayDto.amt) * 0.01; //적립 포인트 
+        let pointData = {
+           uid: ncpayDto.uid,
+           orderId: ncpayDto.orderId,
+           point: savedPoint
+        };
+        this.paymentService.savePoint(pointData);
         
         //쿠폰및 포인트 차감 
         //uid, couponIdx, usercouponidx, shopcode 
@@ -157,9 +165,10 @@ export class NcpayService {
           if(ncpayDto.point > 0) {
             let pointData = {
               orderId: ncpayDto.orderId,
-              point: ncpayDto.point,
+              point: ncpayDto.point, 
               storeId: ncpayDto.storeId,
-              uid: ncpayDto.uid
+              uid: ncpayDto.uid,
+              amt: ncpayDto.amt
             }
             updateResult = await this.paymentService.savePointHistory(pointData);
           }
@@ -182,18 +191,17 @@ export class NcpayService {
 
   //취소테스트 =======================================================================================
   async cancelNcpay() {
-
-
-    // F2205180001496357	ddfactor7m01162205181611030000 500
-    // F2205180001496347	ddfactor7m01162205181549170000 //2000
-    // F2205180001496316	ddfactor7m01162205181512250000  900.0
-    // F2205180001496303	ddfactor7m01162205181457160000 //1500
-    // F2205180001496306	ddfactor7m01162205181500310000 // 900
-    //F2205180001496277	ddfactor7m01162205181436180000
-    let arry = [{moid:'F2205180001496277', tid:'ddfactor7m01162205181436180000', price:1000},
-  //  {moid:'F2205180001496303', tid:'ddfactor7m01162205181457160000', price: 1500},
-  //  {moid:'F2205180001496357', tid:'ddfactor7m01162205181611030000', price: 500},
-
+    //F2205180001496417	ddfactor7m01162205181756340000
+    //F2205180001496413	ddfactor7m01162205181753500000
+//     F2205180001496413	ddfactor7m01162205181753500000
+// F2205180001496417	ddfactor7m01162205181756340000
+// F2205180001496422	ddfactor7m01162205181802240000
+// F2205180001496423	ddfactor7m01162205181803260000
+    let arry = [{moid:'F2205180001496417', tid:'ddfactor7m01162205181756340000', price:1000},
+    {moid:'F2205180001496413', tid:'ddfactor7m01162205181753500000', price:1000},
+    {moid:'F2205180001496417', tid:'ddfactor7m01162205181756340000', price:1000},
+    {moid:'F2205180001496422', tid:'ddfactor7m01162205181802240000', price:1000},
+    {moid:'F2205180001496423', tid:'ddfactor7m01162205181803260000', price:1000}
   ];
     arry.forEach(async data => {
       await this.cancelProcess(data);

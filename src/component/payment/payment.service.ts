@@ -318,6 +318,7 @@ export class PaymentService {
 
     //쿠폰 히스토리저장, 사용처리  
     async saveCouponHistory(userCouponIdx: number, orderId: string) {
+     
         try {
             const [userCoupon] = await this.sequelize.query(`SELECT userIdx, couponIdx, coupon.couponName, coupon.discountType, coupon.maxDiscount
                 FROM userCoupon join coupon  on userCoupon.couponIdx = coupon.idx WHERE  userCoupon.idx=${userCouponIdx}`,
@@ -330,7 +331,6 @@ export class PaymentService {
                                     { type: this.sequelize.QueryTypes.INSERT});
             await this.sequelize.query(`UPDATE userCoupon set isUsed='Y' WHERE  idx=${userCouponIdx}`,
             { type: this.sequelize.QueryTypes.UPDATE}); 
-
             return true;
         } catch (error) { 
             logger.error('saveCouponHistory');
@@ -339,6 +339,21 @@ export class PaymentService {
         }
     }
 
+    async savePoint(pointData: {uid: number, orderId: string , point:number}) {
+        try {
+            console.log('savePoint::::::::::');
+            console.log(pointData);
+             //포인트 적립 
+            const update =  await this.sequelize.query(`UPDATE user set point=point+${pointData.point} WHERE  idx=${pointData.uid}`,
+            { type: this.sequelize.QueryTypes.UPDATE}); 
+            const insertResult = await this.sequelize.query(`INSERT INTO userPointHistory
+            (userIdx, pointKind, pointRef, description, point, regDatetime, expireYear, remark, isCanceled, shopCode)
+            VALUES(${pointData.uid}, '1007', '${pointData.orderId}', '스마트오더 포인트 적립', ${pointData.point}, CURRENT_TIMESTAMP, 0, '포인트 적립', 0, '');`);
+        } catch (error) {
+            console.log(error);
+            logger.error(error);
+        }
+    }
     //포인트 차감 히스토리 저장 
     async savePointHistory(pointData:{
         orderId: string,
@@ -346,20 +361,21 @@ export class PaymentService {
         uid: number
     }) {
         try {
-        console.log('pointDara:::');
-        console.log(pointData);
-        const insertResult = await this.sequelize.query(`INSERT INTO userPointHistory
-        (userIdx, pointKind, pointRef, description, point, regDatetime, expireYear, remark, isCanceled, shopCode)
-        VALUES(${pointData.uid}, '1001', '', '스마트오더 포인트 사용[주문번호:${pointData.orderId}]', -${pointData.point}, CURRENT_TIMESTAMP, 0, '포인트 사용', 0, '');`);
-        const update =  await this.sequelize.query(`UPDATE user set point=point-${pointData.point} WHERE  idx=${pointData.uid}`,
-        { type: this.sequelize.QueryTypes.UPDATE}); 
-            return true;
-        } catch(error) {
-            logger.error('savePointHistory');
-            logger.error(error);
-            return false;
+            console.log('pointDara:::');
+            console.log(pointData);
+            const insertResult = await this.sequelize.query(`INSERT INTO userPointHistory
+            (userIdx, pointKind, pointRef, description, point, regDatetime, expireYear, remark, isCanceled, shopCode)
+            VALUES(${pointData.uid}, '1006', '${pointData.orderId}', '스마트오더 포인트 사용[주문번호:${pointData.orderId}]', -${pointData.point}, CURRENT_TIMESTAMP, 0, '포인트 사용', 0, '');`);
+            const update =  await this.sequelize.query(`UPDATE user set point=point-${pointData.point} WHERE  idx=${pointData.uid}`,
+            { type: this.sequelize.QueryTypes.UPDATE}); 
+             
+                return true;
+            } catch(error) {
+                logger.error('savePointHistory');
+                logger.error(error);
+                return false;
+            }
         }
-    }
 
 }
 
