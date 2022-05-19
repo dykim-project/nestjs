@@ -45,17 +45,18 @@ export class TokenMiddleware implements NestMiddleware {
      
       //token, refreshToken
       let {token, refreshToken} = req.cookies;
-      let param = null;
+      let param = {};
       //토큰 유효성 체크 
       logger.info('token::::::::::::::');
       logger.info(token);
       if(!token) {
         return res.json({statusCode:401, message:'token'});
       }
+
        //jwt 값 얻기 
-       jwt.verify(token, `${jwtObj.secret}`, function(err, decoded) {
+       const result = jwt.verify(token, `${jwtObj.secret}`, function(err, decoded) {
          if(err) {
-          return res.json({statusCode:401, message:'token'});
+          return 'error';
          } else {
          let { idx, 
               username, //id
@@ -67,9 +68,9 @@ export class TokenMiddleware implements NestMiddleware {
                    userName: name,
                    email}
           }
+          console.log(param);
        });
-      if(param === null) {
-        console.log('param null');
+      if(result && result === 'error') {
         return res.json({statusCode:401, message:'token'});
       } else {
         //토근으로 uid 셋팅

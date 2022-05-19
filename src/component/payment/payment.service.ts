@@ -233,8 +233,7 @@ export class PaymentService {
                 cardIssueCorpNo: authResult.CardCode,
                 cardIssueCorpNm: authResult.CardName
             }; 
-            console.log('order with pg data:::::::');
-            console.log(data);
+            logger.info('order with pg data:::::::');
             let result = await kisServerCon('/api/channel/nonpage/extpg/approval', data);
             logger.info('in orderWithPg:::::::::::::::');
             logger.info(result.data.success);
@@ -366,7 +365,7 @@ export class PaymentService {
         uid: number
     }) {
         try {
-            console.log('pointDara:::');
+            logger.info('pointDara:::');
             console.log(pointData);
             const insertResult = await this.sequelize.query(`INSERT INTO userPointHistory
             (userIdx, pointKind, pointRef, description, point, regDatetime, expireYear, remark, isCanceled, shopCode)
