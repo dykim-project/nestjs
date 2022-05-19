@@ -252,7 +252,7 @@ export class PaymentController {
                     orderId: orderId,
                     point: savedPoint
                     };
-        this.paymentService.savePointHistory(pointData);
+                this.paymentService.savePoint(pointData);
                 } catch(error) { 
                     logger.error('update coupon point');
                     logger.error(error);
