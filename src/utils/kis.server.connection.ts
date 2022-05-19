@@ -34,8 +34,7 @@ export const kisServerCon = async (url:string, data?: any):Promise<any> => {
         logger.error(`[KIS SERVER ERROR] ${error.response?.data?.errorMsg}`);
         console.log(error.response);
         console.log(error.response.data.failStack);
-        return false;
-      //  throw new ProcessException(error, "kisserver ");
+        throw new ProcessException(error, "kisserver ");
     } 
     
 }

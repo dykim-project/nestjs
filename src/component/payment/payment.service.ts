@@ -61,7 +61,7 @@ export class PaymentService {
                 orderId: result.ordrId,//서버에서 생성함 
                 userSeq: 0,
                 storeId: paymentDto.storeId,
-                orderType: 0,//0, //0 픽업, 
+                orderType: 1,//0, //0 픽업, 
                 orderDate: date.getTime(),
                 orderYmd: year + month + day,
                 orderY: year, 
@@ -160,7 +160,8 @@ export class PaymentService {
                 couponTitle: paymentDto.couponName,
                 payPrice: paymentDto.calAmt,
                 discountPrice:paymentDto.discountAmt,
-                pointPrice: paymentDto.usedPoint
+                pointPrice: paymentDto.usedPoint,
+                osType: paymentDto.osType
             },
             {where : {orderId: paymentDto.orderId} }
         );
@@ -203,7 +204,7 @@ export class PaymentService {
     //결제 결과 업데이트
     async authUpdate(authData) {
         logger.info('authupdate::::::::::::');
-        logger.info(authData);
+        logger.info(authData.orderId);
         let orderId = authData.orderId ?authData.orderId : authData.Moid.replace('F','');
         logger.info('orderId :::' + orderId);
         const result = await this.orderModel.update(
@@ -236,7 +237,7 @@ export class PaymentService {
             console.log(data);
             let result = await kisServerCon('/api/channel/nonpage/extpg/approval', data);
             logger.info('in orderWithPg:::::::::::::::');
-            logger.info(result.data);
+            logger.info(result.data.success);
             if(result.data.success) {
                 if(result.data.rst === 0) {
                     return false;
@@ -341,7 +342,7 @@ export class PaymentService {
 
     async savePoint(pointData: {uid: number, orderId: string , point:number}) {
         try {
-            console.log('savePoint::::::::::');
+            logger.info('savePoint::::::::::');
             console.log(pointData);
              //포인트 적립 
             const update =  await this.sequelize.query(`UPDATE user set point=point+${pointData.point} WHERE  idx=${pointData.uid}`,
@@ -349,6 +350,10 @@ export class PaymentService {
             const insertResult = await this.sequelize.query(`INSERT INTO userPointHistory
             (userIdx, pointKind, pointRef, description, point, regDatetime, expireYear, remark, isCanceled, shopCode)
             VALUES(${pointData.uid}, '1007', '${pointData.orderId}', '스마트오더 포인트 적립', ${pointData.point}, CURRENT_TIMESTAMP, 0, '포인트 적립', 0, '');`);
+            const result = await this.orderModel.update(
+                {sumRewardPoint: pointData.point
+                },
+                {where : {orderId: pointData.orderId} });
         } catch (error) {
             console.log(error);
             logger.error(error);

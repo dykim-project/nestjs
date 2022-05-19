@@ -45,7 +45,7 @@ export class TokenMiddleware implements NestMiddleware {
      
       //token, refreshToken
       let {token, refreshToken} = req.cookies;
-      let param = {};
+      let param = null;
       //토큰 유효성 체크 
       logger.info('token::::::::::::::');
       logger.info(token);
@@ -57,32 +57,36 @@ export class TokenMiddleware implements NestMiddleware {
          if(err) {
           return res.json({statusCode:401, message:'token'});
          } else {
-           console.log(decoded);
          let { idx, 
               username, //id
               name,
               email
               } = decoded.member;
           param = {uid: idx,
-                  userId: username,
-                  userName: name,
-                  email}
+                   userId: username,
+                   userName: name,
+                   email}
           }
        });
-      //토근으로 uid 셋팅
-      if (req.method === 'GET') {
-        req.query = {...req.query, ...param};
-      } else if (req.method === 'POST') {
-        req.body = {...req.body, ...param};
+      if(param === null) {
+        console.log('param null');
+        return res.json({statusCode:401, message:'token'});
+      } else {
+        //토근으로 uid 셋팅
+        if (req.method === 'GET') {
+          req.query = {...req.query, ...param};
+        } else if (req.method === 'POST') {
+          req.body = {...req.body, ...param};
+        }
       }
       console.log(req.query);
+      next();
     } catch(error) {
       logger.warn(error);
       logger.warn('[Token middleware] parsing error');
       return res.json({statusCode:401, message:'token'});
-      next();
     }
-      next();
+      
   }
 }
 

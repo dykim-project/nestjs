@@ -14,6 +14,7 @@ import { NcpayService } from '../ncpay/ncpay.service';
 import { NcpayDto } from 'src/dto/ncPayDto';
 const config = require('../../config/config');
 const Sequelize = require('sequelize');
+const bcrypt = require('bcryptjs');
 
 @Controller('payment')
 export class PaymentController {
@@ -25,6 +26,14 @@ export class PaymentController {
                 private readonly storeService: StoreService,
                 private readonly ncpayService: NcpayService) {}
 
+    setOStype(req: Request, paymentDto: PaymentDto) {
+        const agent = req.header('user-Agent');
+        if (agent.match('android') != null) { 
+            paymentDto.osType = "android";
+        } else if (agent.toLocaleLowerCase().indexOf("iphone") > -1 || agent.toLocaleLowerCase().indexOf("iad") > -1 || agent.toLocaleLowerCase().indexOf("ipod") > -1) { 
+            paymentDto.osType = "ios";
+        }
+    }
     //장바구니에서 결제하기 클릭했을때 결제 process
     @Post()
     async payment(@Req() req: Request, @Res() res: Response, @Body() paymentDto: PaymentDto ){
@@ -32,20 +41,18 @@ export class PaymentController {
         try {
             console.log('paymentDto');
             console.log(paymentDto);
-          
+
+            this.setOStype(req, paymentDto);
             if(paymentDto.payType === 'NCPAY') {
                 const [payPwd] = await this.sequelize.query(`select payPwd from ncPay where id=${paymentDto.cardId}`,{ type: this.sequelize.QueryTypes.SELECT});
                 const pwd = payPwd.payPwd;
-                   // if (bcrypt.compareSync(paymentDto.pwd, pwd)) {
-                //   //성공
-                // }
-                console.log(pwd);
-                //틀리면 
-            // return res.json({ststusCode:204, resultMsg: '카드 비밀번호가 맞지 않습니다.'});
+                if (!bcrypt.compareSync(paymentDto.pwd, pwd)) {
+                    return res.json({statusCode:205, resultMsg: '비밀번호가 맞지 않습니다.'});
+                }
             }
             const storeOpenChk = await this.storeService.getStoreOpenChk(paymentDto.storeId);
             if(!storeOpenChk) {
-                return res.json({ststusCode:200, resultMsg: 'NOT_OPEN'});
+                return res.json({statusCode:200, resultMsg: 'NOT_OPEN'});
             }
 
             //장바구니 정보 조회

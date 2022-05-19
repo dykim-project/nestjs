@@ -191,20 +191,21 @@ export class NcpayService {
 
   //취소테스트 =======================================================================================
   async cancelNcpay() {
-    //F2205180001496417	ddfactor7m01162205181756340000
-    //F2205180001496413	ddfactor7m01162205181753500000
-//     F2205180001496413	ddfactor7m01162205181753500000
-// F2205180001496417	ddfactor7m01162205181756340000
-// F2205180001496422	ddfactor7m01162205181802240000
-// F2205180001496423	ddfactor7m01162205181803260000
-    let arry = [{moid:'F2205180001496417', tid:'ddfactor7m01162205181756340000', price:1000},
-    {moid:'F2205180001496413', tid:'ddfactor7m01162205181753500000', price:1000},
-    {moid:'F2205180001496417', tid:'ddfactor7m01162205181756340000', price:1000},
-    {moid:'F2205180001496422', tid:'ddfactor7m01162205181802240000', price:1000},
-    {moid:'F2205180001496423', tid:'ddfactor7m01162205181803260000', price:1000}
+//F2205190001496787	ddfactor7m01162205191421150000
+//F2205190001496790	ddfactor7m01162205191425530000
+//F2205190001496799	ddfactor7m01162205191443320000
+//2022-05-19 10:03:41 info: TID:ddfactor7m01162205191003410000
+//2022-05-19 10:03:41 info: MoidF2205190001496631
+
+    let arry = [{moid:'F2205180001496357', tid:'ddfactor7m01162205181611030000', price:1000},
+    // {moid:'F2205180001496413', tid:'ddfactor7m01162205181753500000', price:1000},
+    // {moid:'F2205180001496417', tid:'ddfactor7m01162205181756340000', price:1000},
+    // {moid:'F2205180001496422', tid:'ddfactor7m01162205181802240000', price:1000},
+    // {moid:'F2205180001496423', tid:'ddfactor7m01162205181803260000', price:1000}
   ];
+
     arry.forEach(async data => {
-      await this.cancelProcess(data);
+     await this.cancelProcess(data);
     })
   }
 
@@ -232,7 +233,7 @@ export class NcpayService {
     if(cancelResult.status) {
       if(cancelResult.data.ResultCode === '2001'){
         //취소 성공 
-        await this.paymentService.updateOrderStatus(cancelResult.data.Moid, 'EC9999');
+        await this.paymentService.updateOrderStatus(cancelResult.data.Moid.slice(-8), 'EC9999');
       }
     }
   }

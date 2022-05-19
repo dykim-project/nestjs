@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpException, Post, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { logger } from 'src/config/winston';
 import { AddCartDto } from 'src/dto/addCartDto';
@@ -52,11 +52,15 @@ export class CartController {
                         sumProductPrice,
                         ...couponPoint,
                         cardList,
+
                         statusCode: 200};
+                        console.log(body);
         return res.json(body);
         } catch(error) {
-            logger.log('[cart.cartList]');
-            logger.log(error);
+            console.log('cart::::::::::::::::::::::');
+            console.log(error);
+            return res.status(404).send("ok");
+            //return res.send({statusCode:204, resultMsg:'serverError'});
         }
     }
 
