@@ -191,17 +191,7 @@ export class NcpayService {
 
   //취소테스트 =======================================================================================
   async cancelNcpay() {
-//F2205190001496787	ddfactor7m01162205191421150000
-//F2205190001496790	ddfactor7m01162205191425530000
-//F2205190001496799	ddfactor7m01162205191443320000
-//2022-05-19 10:03:41 info: TID:ddfactor7m01162205191003410000
-//2022-05-19 10:03:41 info: MoidF2205190001496631
-
-    let arry = [{moid:'F2205180001496357', tid:'ddfactor7m01162205181611030000', price:1000},
-    // {moid:'F2205180001496413', tid:'ddfactor7m01162205181753500000', price:1000},
-    // {moid:'F2205180001496417', tid:'ddfactor7m01162205181756340000', price:1000},
-    // {moid:'F2205180001496422', tid:'ddfactor7m01162205181802240000', price:1000},
-    // {moid:'F2205180001496423', tid:'ddfactor7m01162205181803260000', price:1000}
+    let arry = [{moid:'F2205190001496878', tid:'ddfactor7m01162205191720380000', price:900},
   ];
 
     arry.forEach(async data => {
@@ -228,12 +218,11 @@ export class NcpayService {
       CharSet: 'utf-8',
     } //00000001496224
     const cancelResult = await nicepayNetcancel(cancelBody);  
-    console.log('cancel result: ncpay::::::::::::');
     console.log(cancelResult.data);
-    if(cancelResult.status) {
+    if(cancelResult.status) { 
       if(cancelResult.data.ResultCode === '2001'){
         //취소 성공 
-        await this.paymentService.updateOrderStatus(cancelResult.data.Moid.slice(-8), 'EC9999');
+        await this.paymentService.updateOrderStatus('000000' + cancelResult.data.Moid.slice(-8), 'EC9999');
       }
     }
   }

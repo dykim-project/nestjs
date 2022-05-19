@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Header, Param, ParseIntPipe, Post, Query, Req, Res, ServiceUnavailableException } from '@nestjs/common';
-import { Request, Response } from 'express';
+import {  Controller, Get, Query,  Res } from '@nestjs/common';
+import {  Response } from 'express';
 import { CartService } from 'src/component/cart/cart.service';
 import { ProductService } from './product.service';
 import { StoreService } from './store.service';
-import { kisServerCon } from '../../utils/kis.server.connection';
 @Controller()
 export class StoreController {
     constructor(private readonly storeService: StoreService,
@@ -19,7 +18,6 @@ export class StoreController {
     }
 
     //매장 상세(상품 목록)
-    //http://localhost:3000/store/detail?uid=111&storeId=ST00005937
     @Get('store/menuList')
     async getStoreDetail(@Res() res: Response,
                         @Query('uid') uid: number,
@@ -33,12 +31,9 @@ export class StoreController {
         }
         let cartCnt = this.cartService.getCartTotalCnt(cartList);
         //매장상세 정보(상단 매장정보)
-        //get_store_info($store_id); //외부 api 사용 ST00005937
         const storeDetail = await this.storeService.getStoreDetail(storeId);
         //카테고리 목록
         const categoryList = await this.productService.getCategoryList(storeId);
-        console.log('categoryList');
-        console.log(categoryList);
         //상품 목록
         //get_item_list //외부 api 사용
         const productList = await this.productService.getProductList(storeId);

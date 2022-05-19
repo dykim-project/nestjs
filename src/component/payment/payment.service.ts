@@ -96,7 +96,7 @@ export class PaymentService {
             let totalPrice:number = 0;
             let totalCnt:number = 0;
             let goodsCount:number = 0;
-            await basket.forEach(async data => {
+            basket.forEach(async data => {
                 let itemId = "";
                 let itemName = "";
                 let itemQty = 0;
@@ -133,10 +133,7 @@ export class PaymentService {
                 }
                 await this.orderDetailModel.create(inputData);
                 //총금액 & 총갯수 count 
-                console.log('totalCnt::::');
-                console.log(Number(itemQty));
                 totalCnt += Number(itemQty);
-                console.log(totalCnt);
                 totalPrice += (Number(itemQty) * Number(itemPrice));
             });
             await this.updateOrder(paymentDto);
@@ -170,21 +167,22 @@ export class PaymentService {
     //주문 등록 phpsource - regist_order로 주문등록
     async registOrder(paymentDto: PaymentDto) {
         //paymentDto.totalPrice ===0 이면 error 처리 
-       
+        //좌석정보 등록 
+        let seat = paymentDto.orderAddr.split('|');
         const data = {chnlMbrId: paymentDto.uid,
                         strId: paymentDto.storeId,
                         ordrId: paymentDto.orderId,
                         payMthdCd: 'PC',
                         PayMethod: 'CARD',
                         pgCd: 'WL',
-                        ordrKindCd:  '9ICP',//배달 ",9ICP배달즉시,9RVP배달예약"
+                        ordrKindCd:  '9ICP',//배달 ,9ICP배달즉시,9RVP배달예약 2ICP픽업(즉시),2RVP,픽업(예약)"
                         payPrc: `${paymentDto.calAmt}`, 
                         ordrPrc: `${paymentDto.calAmt}`,
                         prePayCd: 'P',
                         postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
                         orderCnct: paymentDto.userTel,
                         ordeCnct: paymentDto.userTel,
-                        ordrDesc: '',
+                        ordrDesc: `${seat[0]},${seat[1]}구역, ${seat[2]}열,${seat[3]}번`,
                         discPrc: 0 
                     };
 
@@ -204,8 +202,8 @@ export class PaymentService {
     //결제 결과 업데이트
     async authUpdate(authData) {
         logger.info('authupdate::::::::::::');
-        logger.info(authData.orderId);
         let orderId = authData.orderId ?authData.orderId : authData.Moid.replace('F','');
+        logger.info(orderId);
         logger.info('orderId :::' + orderId);
         const result = await this.orderModel.update(
             {mid: authData.MID,

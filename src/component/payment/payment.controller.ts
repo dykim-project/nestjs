@@ -1,8 +1,7 @@
-import { Body, Controller, ForbiddenException, Get, InternalServerErrorException, Post, Query, Redirect, Req, Res } from '@nestjs/common';
+import { Body, Controller, Post,Req, Res } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { CartService } from 'src/component/cart/cart.service';
 import { PaymentDto } from 'src/dto/paymentDto';
-import { Basket } from 'src/entity/basket.entity';
 import { PaymentService } from './payment.service';
 import { common } from '../../utils/common';
 import { StoreService } from 'src/component/store/store.service';
@@ -57,6 +56,9 @@ export class PaymentController {
 
             //장바구니 정보 조회
             const basketInfo = await this.cartService.getCartList(paymentDto.uid);
+            if(basketInfo.length === 0) {
+                return res.json({statusCode:204, resultMsg: '장바구니에 상품이 없습니다.'});
+            }
             //1.장바구니 최종 재고 확인
             await basketInfo.every(async data => {
                 let itemStatusCode = data.prdSaleCdStk;

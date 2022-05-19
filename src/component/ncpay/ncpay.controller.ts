@@ -18,8 +18,8 @@ export class NcpayController {
   }
 
   @Post('/cancel') 
-  async payNcpayCancel() {
-    let result = await this.ncpayService.cancelNcpay();
+  async payNcpayCancel(@Body() obj:{tid:string, moid:string, price:number}) {
+    let result = await this.ncpayService.cancelProcess(obj);
   }
 
 }

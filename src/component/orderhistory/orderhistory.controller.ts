@@ -18,7 +18,6 @@ export class OrderhistoryController {
             let ordrList = await this.orderHistoryService.getOrderList(uid);
             // 주문번호를 통해 디비에서 store_id 취득
             let result =  await Promise.all( ordrList.map(async (data) => {
-                 console.log(data);
                 //가게 상세정보 조회하기 
                 let storeDetail = await this.storeService.getStoreDetail(data.strId);
                 //상세 주문 정보 검색
@@ -41,28 +40,6 @@ export class OrderhistoryController {
            
             let storeDetail = await this.storeService.getStoreDetail(orderData.storeId);
             const orderKisData = await this.orderHistoryService.getOrderKisData(uid, ordrId);
-            //orderDetail정보 db조회
-            //const orderDetail = await this.orderHistoryService.getOrderDetail(ordrId);
-            //매장이름, 매장상세정보, 매장 이미지; 
-            //주문내역 조회(매장아이디, 주문금액, 결제 금액, 주문상태)
-            //$sql = "select * from ks_order where order_id=%s";
-                //$store_id = $order_row['store_id'];         // 매장아이디
-                //$total_price = $order_row['total_price'];   // 주문 금액
-                //$pay_price = $order_row['pay_price'];       // 결제 금액
-                //$ks_status = $order_row['status'];       // 주문 상태
-    
-    
-            //주문상세
-            //get_order_detail 외부 api
-    
-    
-    
-            //주문내역상세
-            //$sql = "select * from ks_order_detail where order_id=%s";
-                //item_type
-                //item_name
-                //item_qty
-                //item_price
             let body = {orderData,
                 orderKisData,
                 storeDetail,
