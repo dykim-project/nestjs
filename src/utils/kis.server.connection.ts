@@ -4,6 +4,7 @@ import { logger } from 'src/config/winston';
 import { ProcessException } from 'src/exception/process.exception';
 const config  = require('../config/config');
 
+
 export const kisServerCon = async (url:string, data?: any):Promise<any> => {
     const instance = axios.create({
       });
@@ -35,7 +36,7 @@ export const kisServerCon = async (url:string, data?: any):Promise<any> => {
         logger.error(`url :${url} `);
         console.log(error.response);
         console.log(error.response.data.failStack);
-        throw new ProcessException(error, "kisserver ");
+        return false;
     } 
     
 }

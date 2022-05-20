@@ -33,14 +33,14 @@ export class CartService {
                 result = result.data.data;
             } else {
                 common.logger(result.data, '[payment.addCart]');
-                common.errorException(502, 'ADD_CART_FAIL', result.data);
+                return false;
             }
             return true;
         } catch(error) {
             //front - 상품 담기 중 에러가 발생했습니다.\n에러가 지속되면 관리자에게 문의해주세요
             logger.error('addcart catch error---');
             logger.error(error);
-            throw new InternalServerErrorException('ADDCART_FAIL');
+            return false;
         }
     } 
     
@@ -52,8 +52,9 @@ export class CartService {
         if(result.data.success) {
             result = result.data.data;
         } else {
+            logger.error('장바구니 조회 오류 ');
             common.logger(result.data, '[cart.getCartList]');
-            common.errorException(502, 'GET_CART_FAIL', result.data);
+            return [];
         }
         return result;
     }
@@ -80,23 +81,6 @@ export class CartService {
         return {sumProductQty, sumProductPrice, itemCnt};
     }
 
-
-
-    
-    //사용자 정보 저장
-    async saveUserInfo(cartDto: CartDto) {
-        try {
-            // const [instance, created]  =  await this.userInfoModel.upsert({
-            //     uid: cartDto.uid,
-            //     userName: cartDto.userName,
-            //     pushToken: cartDto.pushToken, //'2020202020'
-            // });
-        } catch(error) {
-            common.logger(error, '[cart.saveUserInfo]');
-            common.errorException(502, 'SAVEUSER_INFO', error);
-        }
-    }
-
     //장바구니 삭제 
     async deleteAllCart(uid: number) {
         const data = {chnlMbrId: uid};
@@ -105,7 +89,7 @@ export class CartService {
             result = result.data.data;
         } else {
             common.logger(result.data, '[cart.deleteAllCart]');
-            common.errorException(502, 'DELETE_ALL_CART_FAIL', result.data);
+            return false;
         }
     }
 
@@ -118,7 +102,7 @@ export class CartService {
             result = result.data.data;
         } else {
             common.logger(result.data, '[cart.deleteOneCart]');
-            common.errorException(502, 'DELETE_CART_FAIL', result.data);
+            return false;
         }
         return result;
     } 

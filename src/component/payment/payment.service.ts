@@ -166,8 +166,6 @@ export class PaymentService {
 
     //주문 등록 phpsource - regist_order로 주문등록
     async registOrder(paymentDto: PaymentDto) {
-        //paymentDto.totalPrice ===0 이면 error 처리 
-        //좌석정보 등록 
         let seat = paymentDto.orderAddr.split('|');
         const data = {chnlMbrId: paymentDto.uid,
                         strId: paymentDto.storeId,
@@ -177,13 +175,16 @@ export class PaymentService {
                         pgCd: 'WL',
                         ordrKindCd:  '9ICP',//배달 ,9ICP배달즉시,9RVP배달예약 2ICP픽업(즉시),2RVP,픽업(예약)"
                         payPrc: `${paymentDto.calAmt}`, 
-                        ordrPrc: `${paymentDto.calAmt}`,
+                        ordrPrc: `${paymentDto.totalPrice}`,
                         prePayCd: 'P',
                         postPaySelectVal:'',//미사용 & 필수값아니지만 없으면 오류 발생
                         orderCnct: paymentDto.userTel,
                         ordeCnct: paymentDto.userTel,
-                        ordrDesc: `${seat[0]},${seat[1]}구역, ${seat[2]}열,${seat[3]}번`,
-                        discPrc: 0 
+                        dlAddr: `${seat[0]},${seat[1]}구역, ${seat[2]}열,${seat[3]}번`,
+                        dlAddrDtl: `${seat[0]},${seat[1]}구역, ${seat[2]}열,${seat[3]}번`,
+                        ordrDesc: '',
+                        //ordrDesc: `${seat[0]},${seat[1]}구역,${seat[2]}열,${seat[3]}번`,
+                        discPrc: paymentDto.discountAmt
                     };
 
         let result = await kisServerCon('/api/channel/nonpage/order/insert', data);
@@ -194,7 +195,7 @@ export class PaymentService {
         } else {
             //front- 주문 등록중 오류가 발생했습니다
             common.logger(result.data, '[payment.registOrder]');
-            common.errorException(502, 'REGIST_ORDER_FAIL', result.data);
+            return false;
         }
         return result;
     }

@@ -59,14 +59,15 @@ export class CartController {
         } catch(error) {
             console.log('cart::::::::::::::::::::::');
             console.log(error);
-            return res.status(404).send("ok");
-            //return res.send({statusCode:204, resultMsg:'serverError'});
+            logger.error('cart/list');
+            return res.json({statusCode:500, resultMsg:'error'})
         }
     }
 
     //상품상세 - 장바구니 추가& 주문하기버튼 ajax_insert_cart.php 참고
      @Post('add') 
      async addCart(@Res() res:Response, @Body() addCartDto: AddCartDto) {
+         try {
          //주문하기
          if(addCartDto.orderType === 'order') {
              const storeOpenChk = await this.storeService.getStoreOpenChk(addCartDto.storeId);
@@ -82,17 +83,30 @@ export class CartController {
              const result = await this.cartService.addCart(addCartDto);
              if(result) {
                 return res.json({statusCode: 200});
+             } else {
+                return res.json({statusCode:500, resultMsg:'error'})
              }
          } else {
             return res.json({statusCode: 200, resultMsg: 'SOLDOUT'});
          }
+        } catch (error) {
+            console.log(error);
+            logger.error('cart/add');
+            return res.json({statusCode:500, resultMsg:'error'})
+        }
      }
  
      //장바구니 삭제 ajax_delete_cart.php
      @Get('delete')
      async deleteCart(@Res() res:Response,  @Query('uid') uid: number, @Query('basketDetailId') baskDtlId: string) {
-         //삭제
-         await this.cartService.deleteOneCart(uid, baskDtlId);
-         return res.json({statusCode:200});
+         try {
+            //삭제
+            await this.cartService.deleteOneCart(uid, baskDtlId);
+            return res.json({statusCode:200});
+         } catch (error) {
+             console.log(error);
+             logger.error('cart/delete');
+            return res.json({statusCode:500, resultMsg:'error'})
+         } 
      }
 }

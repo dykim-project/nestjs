@@ -74,6 +74,9 @@ export class PaymentController {
             await this.paymentService.orderDetailSave(basketInfo, paymentDto);
             //6. 외부 api regist_order로 주문서 접수 
             const result = await this.paymentService.registOrder(paymentDto);
+            if(!result) {
+                return res.json({statusCode: 502 ,  resultMsg:'server error'});
+            }
             console.info('registorder');
             logger.info(result.success);
             //backand - goodsName, price, totalPRicd,userName, userEmail, usertel
@@ -95,8 +98,6 @@ export class PaymentController {
             console.log('last paymentDto:::::::::::::::::');
             console.log(paymentDto);
             this.paymentService.updateOrder(paymentDto);
-            //dbupdate 
-            //ncpay로 결제 
            
             if(paymentDto.calAmt === 0 ){
                 let data = this.payZero(paymentDto);

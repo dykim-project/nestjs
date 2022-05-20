@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectModel } from '@nestjs/sequelize';
 import { kisServerCon } from '../../utils/kis.server.connection';
 import { common } from '../../utils/common';
@@ -63,4 +63,10 @@ export class OrderhistoryService {
         return result;
     }
 
+    //작동안됨, 
+    async orderCancel(orderId:string) {
+        let data ={ordrId: orderId, ordrCclDtl: '사용자 취소'}
+        let result = await kisServerCon('/api/channel/nonpage/card/approvalCancel', data);
+        console.log(result);
+    }
 }
